@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "staleguard",
-        "version": "0.0.1",
+        "version": "0.1.0",
         "news": {
+            "0.1.0": {
+                "en": "The watch list is reloaded only when Staleguard settings change\nLong silences are shown in hours or days\nNo \"State back\" notification when only the deadline or sign of life was changed\nClearer log line for a delayed restart",
+                "de": "Die Überwachungsliste wird nur noch neu geladen, wenn sich Staleguard-Einstellungen ändern\nLange Stille wird in Stunden oder Tagen angegeben\nKeine Meldung „State wieder da“, wenn nur Frist oder Lebenszeichen geändert wurden\nKlarere Logzeile bei einem verzögerten Neustart",
+                "ru": "Список наблюдения перезагружается только при изменении настроек Staleguard\nДолгое молчание указывается в часах или днях\nНет уведомления «Состояние снова активно», если изменены только срок или признак жизни\nБолее понятная запись в журнале при отложенном перезапуске",
+                "pt": "A lista de monitoramento só é recarregada quando as configurações do Staleguard mudam\nSilêncios longos são indicados em horas ou dias\nSem notificação \"Estado de volta\" quando apenas o prazo ou o sinal de vida foi alterado\nLinha de log mais clara para um reinício adiado",
+                "nl": "De bewakingslijst wordt alleen herladen als de Staleguard-instellingen wijzigen\nLange stiltes worden in uren of dagen weergegeven\nGeen melding \"Datapunt weer actief\" als alleen de termijn of het teken van leven is gewijzigd\nDuidelijkere logregel bij een uitgestelde herstart",
+                "fr": "La liste de surveillance n'est rechargée que si les paramètres Staleguard changent\nLes longs silences sont indiqués en heures ou en jours\nPlus de notification « État de retour » si seuls le délai ou le signe de vie ont été modifiés\nLigne de journal plus claire pour un redémarrage différé",
+                "it": "L'elenco di monitoraggio viene ricaricato solo quando cambiano le impostazioni di Staleguard\nI silenzi lunghi sono indicati in ore o giorni\nNessuna notifica \"Stato di nuovo attivo\" se sono stati modificati solo la scadenza o il segno di vita\nRiga di log più chiara per un riavvio ritardato",
+                "es": "La lista de supervisión solo se recarga cuando cambian los ajustes de Staleguard\nLos silencios largos se indican en horas o días\nSin notificación \"Estado de vuelta\" cuando solo se cambió el plazo o el signo de vida\nLínea de registro más clara para un reinicio aplazado",
+                "pl": "Lista monitorowania jest przeładowywana tylko przy zmianie ustawień Staleguard\nDługa cisza jest podawana w godzinach lub dniach\nBrak powiadomienia „Stan znów aktywny”, gdy zmieniono tylko termin lub znak życia\nCzytelniejszy wpis w dzienniku przy opóźnionym restarcie",
+                "uk": "Список контролю перезавантажується лише при зміні налаштувань Staleguard\nДовге мовчання вказується в годинах або днях\nНемає сповіщення «Стан знову активний», якщо змінено лише строк або знак життя\nЗрозуміліший запис у журналі при відкладеному перезапуску",
+                "zh-cn": "仅在 Staleguard 设置更改时才重新加载监控列表\n长时间无响应以小时或天为单位显示\n仅更改期限或生命迹象时，不再发送“状态已恢复”通知\n延迟重启的日志更清晰"
+            },
             "0.0.1": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",

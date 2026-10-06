@@ -141,11 +141,11 @@ is disabled, its channel is removed.
     ### **WORK IN PROGRESS**
 -->
 
-### **WORK IN PROGRESS**
-* (typhosj) Editing a watched object no longer reloads all watches and writes a log line, unless its Staleguard settings changed
-* (typhosj) Long silences are given in hours or days instead of minutes
-* (typhosj) A silent state is no longer reported as back when only its deadline or sign of life was changed
-* (typhosj) The log of a restart that had to wait no longer calls it a repeat
+### 0.1.0 (2026-10-06)
+* (typhosj) The watch list is reloaded only when Staleguard settings change
+* (typhosj) Long silences are shown in hours or days
+* (typhosj) No "State back" notification when only the deadline or sign of life was changed
+* (typhosj) Clearer log line for a delayed restart
 
 ### 0.0.1 (2026-10-06)
 * (typhosj) initial release
