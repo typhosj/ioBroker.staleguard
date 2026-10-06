@@ -18,24 +18,24 @@
             }
         },
         "titleLang": {
-            "en": "Staleguard",
-            "de": "Standwache",
-            "ru": "Сталгард",
-            "pt": "Guarda-redes",
-            "nl": "Patiënt",
-            "fr": "Garde de l'impasse",
-            "it": "Staliguard",
-            "es": "Guardia estancada",
-            "pl": "Strażnik",
-            "uk": "Сталегард",
-            "zh-cn": "守卫者"
+            "en": "Staleguard – stale state watchdog",
+            "de": "Staleguard – Lebenszeichen-Wächter",
+            "ru": "Staleguard – контроль устаревших состояний",
+            "pt": "Staleguard – vigilância de estados sem atualização",
+            "nl": "Staleguard – bewaking van verouderde datapunten",
+            "fr": "Staleguard – surveillance des états figés",
+            "it": "Staleguard – controllo degli stati non aggiornati",
+            "es": "Staleguard – vigilancia de estados sin actualizar",
+            "pl": "Staleguard – nadzór nad nieaktualnymi stanami",
+            "uk": "Staleguard – контроль застарілих станів",
+            "zh-cn": "Staleguard – 陈旧状态看门狗"
         },
         "desc": {
             "en": "Raises a notification when a state stops receiving data, and can restart the instance that owns it",
-            "de": "Löst eine Benachrichtigung aus, wenn ein Staat keine Daten mehr empfängt, und kann die Instanz, die ihn besitzt, neu starten",
+            "de": "Meldet, wenn ein State keine Daten mehr bekommt, und kann die zugehörige Instanz neu starten",
             "ru": "Вызывает уведомление, когда состояние перестает получать данные, и может перезапустить экземпляр, которому оно принадлежит.",
             "pt": "Gera uma notificação quando um estado para de receber dados e pode reiniciar a instância que o possui",
-            "nl": "Geeft een melding wanneer een staat geen gegevens meer ontvangt, en kan de instantie die deze bezit, opnieuw opstarten",
+            "nl": "Geeft een melding wanneer een datapunt geen gegevens meer ontvangt, en kan de bijbehorende instantie opnieuw starten",
             "fr": "Déclenche une notification lorsqu'un état cesse de recevoir des données et peut redémarrer l'instance qui en est propriétaire",
             "it": "Genera una notifica quando uno stato smette di ricevere dati e può riavviare l'istanza che lo possiede",
             "es": "Genera una notificación cuando un estado deja de recibir datos y puede reiniciar la instancia que los posee.",
@@ -62,7 +62,8 @@
         "connectionType": "local",
         "dataSource": "poll",
         "adminUI": {
-            "config": "json"
+            "config": "json",
+            "custom": "json"
         },
         "dependencies": [
             {
@@ -73,12 +74,126 @@
             {
                 "admin": ">=7.0.23"
             }
-        ]
+        ],
+        "supportCustoms": true
     },
+    "notifications": [
+        {
+            "scope": "staleguard",
+            "name": {
+                "en": "Staleguard",
+                "de": "Staleguard"
+            },
+            "description": {
+                "en": "States that stopped receiving data",
+                "de": "States, die keine Daten mehr bekommen"
+            },
+            "categories": [
+                {
+                    "category": "stale",
+                    "name": {
+                        "en": "State silent",
+                        "de": "State still"
+                    },
+                    "description": {
+                        "en": "A watched state missed its deadline",
+                        "de": "Ein überwachter State hat seine Frist überschritten"
+                    },
+                    "severity": "alert",
+                    "regex": [],
+                    "limit": 50
+                },
+                {
+                    "category": "recovered",
+                    "name": {
+                        "en": "State back",
+                        "de": "State wieder da"
+                    },
+                    "description": {
+                        "en": "A silent state is sending again",
+                        "de": "Ein stiller State sendet wieder"
+                    },
+                    "severity": "info",
+                    "regex": [],
+                    "limit": 50
+                },
+                {
+                    "category": "configError",
+                    "name": {
+                        "en": "Watch problem",
+                        "de": "Überwachungsproblem"
+                    },
+                    "description": {
+                        "en": "Missing state, invalid setting or failed restart",
+                        "de": "Fehlender State, ungültige Einstellung oder fehlgeschlagener Neustart"
+                    },
+                    "severity": "notify",
+                    "regex": [],
+                    "limit": 50
+                }
+            ]
+        }
+    ],
     "native": {
         "checkIntervalSec": 60,
         "restartLockMin": 60
     },
     "objects": [],
-    "instanceObjects": []
+    "instanceObjects": [
+        {
+            "_id": "summary",
+            "type": "channel",
+            "common": {
+                "name": "Summary"
+            },
+            "native": {}
+        },
+        {
+            "_id": "summary.watched",
+            "type": "state",
+            "common": {
+                "name": "Watched states",
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "summary.stale",
+            "type": "state",
+            "common": {
+                "name": "Silent states",
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "summary.list",
+            "type": "state",
+            "common": {
+                "name": "Watch list",
+                "type": "string",
+                "role": "json",
+                "read": true,
+                "write": false,
+                "def": "[]"
+            },
+            "native": {}
+        },
+        {
+            "_id": "watches",
+            "type": "folder",
+            "common": {
+                "name": "Watched states"
+            },
+            "native": {}
+        }
+    ]
 }

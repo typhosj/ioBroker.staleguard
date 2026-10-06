@@ -1,0 +1,47 @@
+{
+    "i18n": true,
+    "type": "panel",
+    "items": {
+        "enabled": {
+            "type": "checkbox",
+            "label": "Watch this state",
+            "default": false,
+            "xs": 12
+        },
+        "timeoutMin": {
+            "type": "number",
+            "label": "Deadline (min)",
+            "help": "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.",
+            "min": 1,
+            "max": 10080,
+            "default": 60,
+            "hidden": "!data.enabled",
+            "xs": 12,
+            "sm": 4
+        },
+        "mode": {
+            "type": "select",
+            "label": "Sign of life",
+            "help": "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.",
+            "options": [
+                { "label": "Any update", "value": "update" },
+                { "label": "Value change", "value": "change" }
+            ],
+            "default": "update",
+            "hidden": "!data.enabled",
+            "xs": 12,
+            "sm": 4
+        },
+        "restartAttempts": {
+            "type": "number",
+            "label": "Instance restarts per outage",
+            "help": "0 = off. Only for states of another adapter instance.",
+            "min": 0,
+            "max": 5,
+            "default": 0,
+            "hidden": "!data.enabled",
+            "xs": 12,
+            "sm": 4
+        }
+    }
+}

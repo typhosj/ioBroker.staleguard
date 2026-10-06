@@ -1,5 +1,16 @@
 {
-    "staleguard adapter settings": "Configurações do adaptador para staleguard",
-    "Check interval (s)": "Verifique intervalo(s)",
-    "Restart lock (min)": "Bloqueio de reinicialização (min)"
+    "0 = off. Only for states of another adapter instance.": "0 = desligado. Somente para estados de outra instância do adaptador.",
+    "Any update": "Qualquer atualização",
+    "Check interval (s)": "Intervalo de verificação (s)",
+    "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.": "Os adaptadores de nuvem geralmente reescrevem o mesmo valor; use 'mudança de valor' para capturar dados congelados.",
+    "Deadline (min)": "Prazo (min)",
+    "How often all watched states are checked. 10 to 600 seconds.": "Com que frequência todos os estados monitorados são verificados. 10 a 600 segundos.",
+    "Instance restarts per outage": "Reinícios da instância por interrupção",
+    "Minimum time between two restarts of the same instance. 10 to 1440 minutes.": "Tempo mínimo entre duas reinicializações da mesma instância. 10 a 1440 minutos.",
+    "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Dê um alarme quando não houver sinal de vida por tanto tempo. 1 a 10.080 minutos.",
+    "Restart lock (min)": "Bloqueio de reinicialização (min)",
+    "Sign of life": "Sinal de vida",
+    "Value change": "Alteração de valor",
+    "Watch this state": "Monitorar este estado",
+    "staleguard adapter settings": "Configurações do adaptador para staleguard"
 }

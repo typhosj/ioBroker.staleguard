@@ -1,5 +1,16 @@
 {
-    "staleguard adapter settings": "Impostazioni dell'adattatore per staleguard",
+    "0 = off. Only for states of another adapter instance.": "0 = spento. Solo per gli stati di un'altra istanza dell'adattatore.",
+    "Any update": "Qualsiasi aggiornamento",
     "Check interval (s)": "Intervallo di controllo (s)",
-    "Restart lock (min)": "Blocco riavvio (min)"
+    "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.": "Gli adattatori cloud spesso riscrivono lo stesso valore; utilizzare \"modifica valore\" per acquisire dati congelati.",
+    "Deadline (min)": "Scadenza (min)",
+    "How often all watched states are checked. 10 to 600 seconds.": "La frequenza con cui vengono controllati tutti gli stati osservati. Da 10 a 600 secondi.",
+    "Instance restarts per outage": "Riavvii dell'istanza per interruzione",
+    "Minimum time between two restarts of the same instance. 10 to 1440 minutes.": "Tempo minimo tra due riavvii della stessa istanza. Da 10 a 1440 minuti.",
+    "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Lancia l'allarme quando non ci sono segni di vita per così tanto tempo. Da 1 a 10080 minuti.",
+    "Restart lock (min)": "Blocco riavvio (min)",
+    "Sign of life": "Segno di vita",
+    "Value change": "Cambiamento di valore",
+    "Watch this state": "Monitora questo stato",
+    "staleguard adapter settings": "Impostazioni dell'adattatore per staleguard"
 }

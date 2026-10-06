@@ -1,5 +1,16 @@
 {
-    "staleguard adapter settings": "staleguard的适配器设置",
+    "0 = off. Only for states of another adapter instance.": "0 = 关闭。仅适用于另一个适配器实例的状态。",
+    "Any update": "任何更新",
     "Check interval (s)": "检查间隔（秒）",
-    "Restart lock (min)": "重启锁定（分钟）"
+    "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.": "云适配器经常重写相同的值；使用“值更改”来捕获冻结数据。",
+    "Deadline (min)": "期限（分钟）",
+    "How often all watched states are checked. 10 to 600 seconds.": "检查所有观看状态的频率。 10 至 600 秒。",
+    "Instance restarts per outage": "每次中断的实例重启次数",
+    "Minimum time between two restarts of the same instance. 10 to 1440 minutes.": "同一实例两次重新启动之间的最短时间。 10 至 1440 分钟。",
+    "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "如果长时间没有生命迹象，请发出警报。 1 到 10080 分钟。",
+    "Restart lock (min)": "重启锁定（分钟）",
+    "Sign of life": "生命迹象",
+    "Value change": "价值变化",
+    "Watch this state": "监控此状态",
+    "staleguard adapter settings": "staleguard的适配器设置"
 }

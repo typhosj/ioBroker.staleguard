@@ -5,22 +5,22 @@
         "checkIntervalSec": {
             "type": "number",
             "label": "Check interval (s)",
-            "newLine": true,
+            "help": "How often all watched states are checked. 10 to 600 seconds.",
+            "min": 10,
+            "max": 600,
+            "default": 60,
             "xs": 12,
-            "sm": 12,
-            "md": 6,
-            "lg": 4,
-            "xl": 4
+            "sm": 6
         },
         "restartLockMin": {
             "type": "number",
             "label": "Restart lock (min)",
-            "newLine": true,
+            "help": "Minimum time between two restarts of the same instance. 10 to 1440 minutes.",
+            "min": 10,
+            "max": 1440,
+            "default": 60,
             "xs": 12,
-            "sm": 12,
-            "md": 6,
-            "lg": 4,
-            "xl": 4
+            "sm": 6
         }
     }
 }

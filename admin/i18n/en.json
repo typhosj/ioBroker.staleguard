@@ -1,5 +1,16 @@
 {
     "staleguard adapter settings": "Adapter settings for staleguard",
     "Check interval (s)": "Check interval (s)",
-    "Restart lock (min)": "Restart lock (min)"
+    "How often all watched states are checked. 10 to 600 seconds.": "How often all watched states are checked. 10 to 600 seconds.",
+    "Restart lock (min)": "Restart lock (min)",
+    "Minimum time between two restarts of the same instance. 10 to 1440 minutes.": "Minimum time between two restarts of the same instance. 10 to 1440 minutes.",
+    "Watch this state": "Watch this state",
+    "Deadline (min)": "Deadline (min)",
+    "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.",
+    "Sign of life": "Sign of life",
+    "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.": "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.",
+    "Any update": "Any update",
+    "Value change": "Value change",
+    "Instance restarts per outage": "Instance restarts per outage",
+    "0 = off. Only for states of another adapter instance.": "0 = off. Only for states of another adapter instance."
 }

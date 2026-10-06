@@ -1,5 +1,16 @@
 {
-    "staleguard adapter settings": "Налаштування адаптера для staleguard",
+    "0 = off. Only for states of another adapter instance.": "0 = вимкнено. Лише для станів іншого екземпляра адаптера.",
+    "Any update": "Будь-яке оновлення",
     "Check interval (s)": "Інтервал перевірки (с)",
-    "Restart lock (min)": "Перезапуск блокування (хв.)"
+    "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.": "Хмарні адаптери часто переписують те саме значення; використовуйте «зміну значення», щоб перехопити заморожені дані.",
+    "Deadline (min)": "Строк (хв)",
+    "How often all watched states are checked. 10 to 600 seconds.": "Як часто перевіряються всі стани перегляду. від 10 до 600 секунд.",
+    "Instance restarts per outage": "Перезапусків екземпляра за збій",
+    "Minimum time between two restarts of the same instance. 10 to 1440 minutes.": "Мінімальний час між двома перезапусками одного екземпляра. 10 до 1440 хвилин.",
+    "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Підніміть тривогу, коли так довго немає ознак життя. 1 до 10080 хвилин.",
+    "Restart lock (min)": "Перезапуск блокування (хв.)",
+    "Sign of life": "Знак життя",
+    "Value change": "Зміна значення",
+    "Watch this state": "Контролювати цей стан",
+    "staleguard adapter settings": "Налаштування адаптера для staleguard"
 }

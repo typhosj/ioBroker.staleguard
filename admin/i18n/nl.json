@@ -1,5 +1,16 @@
 {
-    "staleguard adapter settings": "Adapterinstellingen voor staleguard",
-    "Check interval (s)": "Controle-interval(s)",
-    "Restart lock (min)": "Herstartblokkering (min)"
+    "0 = off. Only for states of another adapter instance.": "0 = uit. Alleen voor statussen van een andere adapterinstantie.",
+    "Any update": "Elke update",
+    "Check interval (s)": "Controle-interval (s)",
+    "Cloud adapters often rewrite the same value; use 'value change' to catch frozen data.": "Cloudadapters herschrijven vaak dezelfde waarde; gebruik 'waardeverandering' om bevroren gegevens op te vangen.",
+    "Deadline (min)": "Deadline (min)",
+    "How often all watched states are checked. 10 to 600 seconds.": "Hoe vaak alle bekeken staten worden gecontroleerd. 10 tot 600 seconden.",
+    "Instance restarts per outage": "Herstarts van de instantie per uitval",
+    "Minimum time between two restarts of the same instance. 10 to 1440 minutes.": "Minimale tijd tussen twee herstarts van hetzelfde exemplaar. 10 tot 1440 minuten.",
+    "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Sla alarm als er zo lang geen teken van leven is. 1 tot 10080 minuten.",
+    "Restart lock (min)": "Herstartblokkering (min)",
+    "Sign of life": "Teken van leven",
+    "Value change": "Waardeverandering",
+    "Watch this state": "Dit datapunt bewaken",
+    "staleguard adapter settings": "Adapterinstellingen voor staleguard"
 }
