@@ -10,7 +10,10 @@
             "max": 600,
             "default": 60,
             "xs": 12,
-            "sm": 6
+            "sm": 6,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
         },
         "restartLockMin": {
             "type": "number",
@@ -20,7 +23,10 @@
             "max": 1440,
             "default": 60,
             "xs": 12,
-            "sm": 6
+            "sm": 6,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
         }
     }
 }

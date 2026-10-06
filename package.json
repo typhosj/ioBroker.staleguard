@@ -10,6 +10,7 @@
   "homepage": "https://github.com/typhosj/ioBroker.staleguard",
   "license": "MIT",
   "keywords": [
+    "ioBroker",
     "watchdog",
     "monitoring",
     "stale",

@@ -44,7 +44,7 @@
             "zh-cn": "当某个状态停止接收数据时发出通知，并可以重新启动拥有该状态的实例"
         },
         "authors": ["typhosj <typhosj@gmx.de>"],
-        "keywords": ["watchdog", "monitoring", "stale", "heartbeat", "notification"],
+        "keywords": ["ioBroker", "watchdog", "monitoring", "stale", "heartbeat", "notification"],
         "licenseInformation": {
             "type": "free",
             "license": "MIT"
@@ -72,7 +72,7 @@
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.0.23"
+                "admin": ">=7.6.17"
             }
         ],
         "supportCustoms": true
@@ -82,22 +82,58 @@
             "scope": "staleguard",
             "name": {
                 "en": "Staleguard",
-                "de": "Staleguard"
+                "de": "Staleguard",
+                "ru": "Staleguard",
+                "pt": "Staleguard",
+                "nl": "Staleguard",
+                "fr": "Staleguard",
+                "it": "Staleguard",
+                "es": "Staleguard",
+                "pl": "Staleguard",
+                "uk": "Staleguard",
+                "zh-cn": "Staleguard"
             },
             "description": {
                 "en": "States that stopped receiving data",
-                "de": "States, die keine Daten mehr bekommen"
+                "de": "States, die keine Daten mehr bekommen",
+                "ru": "Состояния, которые перестали получать данные",
+                "pt": "Estados que deixaram de receber dados",
+                "nl": "Datapunten die geen gegevens meer ontvangen",
+                "fr": "États qui ne reçoivent plus de données",
+                "it": "Stati che non ricevono più dati",
+                "es": "Estados que han dejado de recibir datos",
+                "pl": "Stany, które przestały otrzymywać dane",
+                "uk": "Стани, які перестали отримувати дані",
+                "zh-cn": "已停止接收数据的状态"
             },
             "categories": [
                 {
                     "category": "stale",
                     "name": {
                         "en": "State silent",
-                        "de": "State still"
+                        "de": "State still",
+                        "ru": "Состояние молчит",
+                        "pt": "Estado silencioso",
+                        "nl": "Datapunt stil",
+                        "fr": "État muet",
+                        "it": "Stato silenzioso",
+                        "es": "Estado en silencio",
+                        "pl": "Stan milczy",
+                        "uk": "Стан мовчить",
+                        "zh-cn": "状态无响应"
                     },
                     "description": {
                         "en": "A watched state missed its deadline",
-                        "de": "Ein überwachter State hat seine Frist überschritten"
+                        "de": "Ein überwachter State hat seine Frist überschritten",
+                        "ru": "Контролируемое состояние не обновилось в срок",
+                        "pt": "Um estado monitorado ultrapassou o prazo",
+                        "nl": "Een bewaakt datapunt heeft de termijn overschreden",
+                        "fr": "Un état surveillé a dépassé son délai",
+                        "it": "Uno stato monitorato ha superato la scadenza",
+                        "es": "Un estado supervisado ha superado su plazo",
+                        "pl": "Monitorowany stan przekroczył termin",
+                        "uk": "Контрольований стан не оновився вчасно",
+                        "zh-cn": "受监控的状态超过了期限"
                     },
                     "severity": "alert",
                     "regex": [],
@@ -107,11 +143,29 @@
                     "category": "recovered",
                     "name": {
                         "en": "State back",
-                        "de": "State wieder da"
+                        "de": "State wieder da",
+                        "ru": "Состояние снова активно",
+                        "pt": "Estado de volta",
+                        "nl": "Datapunt weer actief",
+                        "fr": "État de retour",
+                        "it": "Stato di nuovo attivo",
+                        "es": "Estado de vuelta",
+                        "pl": "Stan znów aktywny",
+                        "uk": "Стан знову активний",
+                        "zh-cn": "状态已恢复"
                     },
                     "description": {
                         "en": "A silent state is sending again",
-                        "de": "Ein stiller State sendet wieder"
+                        "de": "Ein stiller State sendet wieder",
+                        "ru": "Молчавшее состояние снова передаёт данные",
+                        "pt": "Um estado silencioso voltou a enviar dados",
+                        "nl": "Een stil datapunt stuurt weer gegevens",
+                        "fr": "Un état muet envoie à nouveau des données",
+                        "it": "Uno stato silenzioso invia di nuovo dati",
+                        "es": "Un estado en silencio vuelve a enviar datos",
+                        "pl": "Milczący stan znów wysyła dane",
+                        "uk": "Стан, що мовчав, знову надсилає дані",
+                        "zh-cn": "无响应的状态重新发送数据"
                     },
                     "severity": "info",
                     "regex": [],
@@ -121,11 +175,29 @@
                     "category": "configError",
                     "name": {
                         "en": "Watch problem",
-                        "de": "Überwachungsproblem"
+                        "de": "Überwachungsproblem",
+                        "ru": "Проблема контроля",
+                        "pt": "Problema de monitoramento",
+                        "nl": "Bewakingsprobleem",
+                        "fr": "Problème de surveillance",
+                        "it": "Problema di monitoraggio",
+                        "es": "Problema de supervisión",
+                        "pl": "Problem z monitorowaniem",
+                        "uk": "Проблема контролю",
+                        "zh-cn": "监控问题"
                     },
                     "description": {
                         "en": "Missing state, invalid setting or failed restart",
-                        "de": "Fehlender State, ungültige Einstellung oder fehlgeschlagener Neustart"
+                        "de": "Fehlender State, ungültige Einstellung oder fehlgeschlagener Neustart",
+                        "ru": "Отсутствующее состояние, неверная настройка или неудачный перезапуск",
+                        "pt": "Estado ausente, configuração inválida ou reinício falhado",
+                        "nl": "Ontbrekend datapunt, ongeldige instelling of mislukte herstart",
+                        "fr": "État manquant, paramètre invalide ou redémarrage échoué",
+                        "it": "Stato mancante, impostazione non valida o riavvio non riuscito",
+                        "es": "Estado ausente, ajuste no válido o reinicio fallido",
+                        "pl": "Brakujący stan, nieprawidłowe ustawienie lub nieudany restart",
+                        "uk": "Відсутній стан, неправильне налаштування або невдалий перезапуск",
+                        "zh-cn": "状态缺失、设置无效或重启失败"
                     },
                     "severity": "notify",
                     "regex": [],
