@@ -10,121 +10,111 @@
 
 **Tests:** ![Test and Release](https://github.com/typhosj/ioBroker.staleguard/workflows/Test%20and%20Release/badge.svg)
 
-## staleguard adapter for ioBroker
+## Staleguard adapter for ioBroker
 
-Raises a notification when a state stops receiving data, and can restart the instance that owns it
+### What it does
 
-## Developer manual
-This section is intended for the developer. It can be deleted later.
+Staleguard tells you when an ioBroker state has stopped receiving data. You mark any state in the
+object browser and give it a deadline. When the state stays silent longer than that, Staleguard
+raises an ioBroker notification, can restart the adapter instance that owns the state, and reports
+when data arrives again.
 
-### DISCLAIMER
+It watches states, not devices or adapters, so it works with any adapter and with your own scripts.
+Typical cases:
 
-Please make sure that you consider copyrights and trademarks when you use names or logos of a company and add a disclaimer to your README.
-You can check other adapters for examples or ask in the developer community. Using a name or logo of a company without permission may cause legal problems for you.
+- a cloud adapter keeps `info.connection` true, but its values stopped moving;
+- a Shelly, Zigbee or radio sensor stopped reporting;
+- a script stopped writing its heartbeat state.
 
-### Getting started
+### Setup
 
-You are almost done, only a few steps left:
-1. Create a new repository on GitHub with the name `ioBroker.staleguard`
-1. Initialize the current folder as a new git repository:  
-    ```bash
-    git init -b main
-    git add .
-    git commit -m "Initial commit"
-    ```
-1. Link your local repository with the one on GitHub:  
-    ```bash
-    git remote add origin https://github.com/typhosj/ioBroker.staleguard
-    ```
+1. Install the adapter and create an instance. The defaults work for most systems.
+2. Open **Objects**, click the gear icon (custom settings) of the state you want to watch, and
+   enable `staleguard.0`.
+3. Set the fields:
 
-1. Push all files to the GitHub repo:  
-    ```bash
-    git push origin main
-    ```
-1. Add a new secret under https://github.com/typhosj/ioBroker.staleguard/settings/secrets. It must be named `AUTO_MERGE_TOKEN` and contain a personal access token with push access to the repository, e.g. yours. You can create a new token under https://github.com/settings/tokens.
+| Field | Range | Default | Meaning |
+|---|---|---|---|
+| Watch this state | on / off | off | watch this state |
+| Deadline (min) | 1–10080 | 60 | alarm when there is no sign of life for this long (max. 7 days) |
+| Sign of life | Any update / Value change | Any update | which timestamp counts, see below |
+| Instance restarts per outage | 0–5 | 0 | restart the owning instance, 0 = off |
 
-1. Head over to [src/main.ts](src/main.ts) and start programming!
+Instance settings:
 
-### Best Practices
-We've collected some [best practices](https://github.com/ioBroker/ioBroker.repositories#development-and-coding-best-practices) regarding ioBroker development and coding in general. If you're new to ioBroker or Node.js, you should
-check them out. If you're already experienced, you should also take a look at them - you might learn something new :)
+| Setting | Range | Default | Meaning |
+|---|---|---|---|
+| Check interval (s) | 10–600 | 60 | how often all watched states are checked |
+| Restart lock (min) | 10–1440 | 60 | minimum time between two restarts of the same instance |
 
-### State Roles
-When creating state objects, it is important to use the correct role for the state. The role defines how the state should be interpreted by visualizations and other adapters. For a list of available roles and their meanings, please refer to the [state roles documentation](https://www.iobroker.net/#en/documentation/dev/stateroles.md).
+Invalid per-state settings are not replaced by defaults: the watch is rejected and reported as a
+notification, so you notice the mistake.
 
-**Important:** Do not invent your own custom role names. If you need a role that is not part of the official list, please contact the ioBroker developer community for guidance and discussion about adding new roles.
+### Any update or value change
 
-### Scripts in `package.json`
-Several npm scripts are predefined for your convenience. You can run them using `npm run <scriptname>`
-| Script name | Description |
-|-------------|-------------|
-| `build` | Compile the TypeScript sources. |
-| `watch` | Compile the TypeScript sources and watch for changes. |
-| `test:ts` | Executes the tests you defined in `*.test.ts` files. |
-| `test:package` | Ensures your `package.json` and `io-package.json` are valid. |
-| `test:integration` | Tests the adapter startup with an actual instance of ioBroker. |
-| `test` | Performs a minimal test run on package files and your tests. |
-| `check` | Performs a type-check on your code (without compiling anything). |
-| `lint` | Runs `ESLint` to check your code for formatting errors and potential bugs. |
-| `translate` | Translates texts in your adapter to all required languages, see [`@iobroker/adapter-dev`](https://github.com/ioBroker/adapter-dev#manage-translations) for more details. |
-| `release` | Creates a new release, see [`@alcalzone/release-script`](https://github.com/AlCalzone/release-script#usage) for more details. |
+- **Any update** checks the time of the last write (`ts`). Use it for sensors and scripts that
+  write only when they have something new.
+- **Value change** checks the time of the last value change (`lc`). Cloud adapters often rewrite
+  the same value with a new timestamp on every poll, so frozen cloud data only shows up with this
+  mode.
 
-### Configuring the compilation
-The adapter template uses [esbuild](https://esbuild.github.io/) to compile TypeScript and/or React code. You can configure many compilation settings 
-either in `tsconfig.json` or by changing options for the build tasks. These options are described in detail in the
-[`@iobroker/adapter-dev` documentation](https://github.com/ioBroker/adapter-dev#compile-adapter-files).
+Values that legitimately stay constant for a long time (PV power at night, the charge level of a
+parked car) cause false alarms with **Value change**. For frozen cloud data, watch a timestamp the
+cloud itself delivers (`lastSeen` or similar) with **Value change** instead.
 
-### Writing tests
-When done right, testing code is invaluable, because it gives you the 
-confidence to change your code while knowing exactly if and when 
-something breaks. A good read on the topic of test-driven development 
-is https://hackernoon.com/introduction-to-test-driven-development-tdd-61a13bc92d92. 
-Although writing tests before the code might seem strange at first, but it has very 
-clear upsides.
+After Staleguard starts, every watched state gets its full deadline before it can be reported, so a
+host reboot does not cause a burst of alarms for states that were already old.
 
-The template provides you with basic tests for the adapter startup and package files.
-It is recommended that you add your own tests into the mix.
+### Notifications
 
-### Publishing the adapter
-Using GitHub Actions, you can enable automatic releases on npm whenever you push a new git tag that matches the form 
-`v<major>.<minor>.<patch>`. We **strongly recommend** that you do. The necessary steps are described in `.github/workflows/test-and-release.yml`.
+Staleguard raises ioBroker notifications in the scope `staleguard`. They appear in the admin
+notification area; [notification-manager](https://github.com/foxriver76/ioBroker.notification-manager)
+forwards them to Telegram, e-mail and other messengers. Staleguard contains no delivery code itself.
 
-Since you installed the release script, you can create a new
-release simply by calling:
-```bash
-npm run release
-```
-Additional command line options for the release script are explained in the
-[release-script documentation](https://github.com/AlCalzone/release-script#command-line).
+| Category | Severity | When |
+|---|---|---|
+| State silent | alert | a state missed its deadline; the last restart attempt did not help |
+| State back | info | a silent state is sending again |
+| Watch problem | notify | the state does not exist or has no value, a setting is invalid, a restart failed |
 
-To get your adapter released in ioBroker, please refer to the documentation 
-of [ioBroker.repositories](https://github.com/ioBroker/ioBroker.repositories#requirements-for-adapter-to-get-added-to-the-latest-repository).
+A state is reported once when it goes silent and once when it comes back, not on every check. The
+texts are written in German on a German system and in English otherwise.
 
-### Test the adapter manually on a local ioBroker installation
-In order to install the adapter locally without publishing, the following steps are recommended:
-1. Create a GitHub repository for your adapter if you haven't already
-1. Push your code to the GitHub repository
-1. Use the ioBroker Admin interface or command line to install the adapter from GitHub:
-    * **Via Admin UI**: Go to the "Adapters" tab, click on "Custom Install" (GitHub icon), and enter your repository URL:
-        ```
-        https://github.com/typhosj/ioBroker.staleguard
-        ```
-        You can also install from a specific branch by adding `#branchname` at the end:
-        ```
-        https://github.com/typhosj/ioBroker.staleguard#dev
-        ```
-    * **Via Command Line**: Install using the `iob` command:
-        ```bash
-        iob url https://github.com/typhosj/ioBroker.staleguard
-        ```
-        Or from a specific branch:
-        ```bash
-        iob url https://github.com/typhosj/ioBroker.staleguard#dev
-        ```
+### Instance restarts
 
-For later updates:
-1. Push your changes to GitHub
-1. Repeat the installation steps above (via Admin UI or `iob url` command) to update the adapter
+With **Instance restarts per outage** above 0, Staleguard restarts the adapter instance the state
+belongs to (`<adapter>.<n>`):
+
+- the first restart comes as soon as the state is silent;
+- each further restart comes one full deadline after the previous one, if the state is still silent;
+- several silent states of one instance cause at most one restart per **Restart lock**;
+- after the last attempt, one more notification says that no further attempts follow;
+- a disabled instance is never started, and Staleguard never restarts itself;
+- a failed restart is reported and still counts as an attempt.
+
+Restarts are only possible for states of another adapter instance, not for `0_userdata`, `alias`
+or `system` states.
+
+### States
+
+| State | Type | Meaning |
+|---|---|---|
+| `staleguard.0.summary.watched` | number | number of watched states |
+| `staleguard.0.summary.stale` | number | number of silent states |
+| `staleguard.0.summary.list` | JSON | `[{id, name, status, since}]` of all watches |
+| `staleguard.0.watches.<id>.stale` | boolean | `true` = silent |
+| `staleguard.0.watches.<id>.status` | string | `ok`, `stale` or `missing` |
+| `staleguard.0.watches.<id>.since` | number | time of the last status change |
+| `staleguard.0.watches.<id>.restarts` | number | restart attempts in the current outage |
+
+`<id>` is the watched state id with `.` replaced by `__`. All states are read-only. When a watch
+is disabled, its channel is removed.
+
+### Limits
+
+- At most 5000 watched states; further entries are rejected and reported.
+- A watched object that is deleted at runtime shows `missing` until Staleguard restarts.
+- A timestamp in the future (the clock moved back) keeps a watch `ok` until the clock catches up.
 
 ## Changelog
 <!--
