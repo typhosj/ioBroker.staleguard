@@ -1,0 +1,51 @@
+{
+    "cli": true,
+    "target": "directory",
+    "adapterName": "staleguard",
+    "title": "Staleguard",
+    "description": "Raises a notification when a state stops receiving data, and can restart the instance that owns it",
+    "keywords": ["watchdog", "monitoring", "stale", "heartbeat", "notification"],
+    "contributors": [],
+    "expert": "yes",
+    "features": ["adapter"],
+    "adminFeatures": [],
+    "type": "utility",
+    "startMode": "daemon",
+    "connectionType": "local",
+    "dataSource": "poll",
+    "connectionIndicator": "no",
+    "adapterSettings": [
+        {
+            "key": "checkIntervalSec",
+            "defaultValue": 60,
+            "inputType": "number",
+            "label": "Check interval (s)"
+        },
+        {
+            "key": "restartLockMin",
+            "defaultValue": 60,
+            "inputType": "number",
+            "label": "Restart lock (min)"
+        }
+    ],
+    "language": "TypeScript",
+    "nodeVersion": "22",
+    "adminUi": "json",
+    "tools": ["ESLint", "type checking", "Prettier"],
+    "eslintConfig": "official",
+    "i18n": "JSON",
+    "releaseScript": "yes",
+    "devServer": "no",
+    "indentation": "Space (4)",
+    "quotes": "single",
+    "authorName": "typhosj",
+    "authorGithub": "typhosj",
+    "authorEmail": "typhosj@gmx.de",
+    "gitRemoteProtocol": "HTTPS",
+    "gitCommit": "no",
+    "defaultBranch": "main",
+    "license": "MIT License",
+    "dependabot": "yes",
+    "replay": "C:\\Users\\manuel\\Documents\\repo\\iobroker-adapters\\staleguard\\.create-adapter.json",
+    "creatorVersion": "3.1.5"
+}

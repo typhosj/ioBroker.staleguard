@@ -1,0 +1,84 @@
+{
+    "common": {
+        "name": "staleguard",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "uk": "Початкова версія",
+                "zh-cn": "首次出版"
+            }
+        },
+        "titleLang": {
+            "en": "Staleguard",
+            "de": "Standwache",
+            "ru": "Сталгард",
+            "pt": "Guarda-redes",
+            "nl": "Patiënt",
+            "fr": "Garde de l'impasse",
+            "it": "Staliguard",
+            "es": "Guardia estancada",
+            "pl": "Strażnik",
+            "uk": "Сталегард",
+            "zh-cn": "守卫者"
+        },
+        "desc": {
+            "en": "Raises a notification when a state stops receiving data, and can restart the instance that owns it",
+            "de": "Löst eine Benachrichtigung aus, wenn ein Staat keine Daten mehr empfängt, und kann die Instanz, die ihn besitzt, neu starten",
+            "ru": "Вызывает уведомление, когда состояние перестает получать данные, и может перезапустить экземпляр, которому оно принадлежит.",
+            "pt": "Gera uma notificação quando um estado para de receber dados e pode reiniciar a instância que o possui",
+            "nl": "Geeft een melding wanneer een staat geen gegevens meer ontvangt, en kan de instantie die deze bezit, opnieuw opstarten",
+            "fr": "Déclenche une notification lorsqu'un état cesse de recevoir des données et peut redémarrer l'instance qui en est propriétaire",
+            "it": "Genera una notifica quando uno stato smette di ricevere dati e può riavviare l'istanza che lo possiede",
+            "es": "Genera una notificación cuando un estado deja de recibir datos y puede reiniciar la instancia que los posee.",
+            "pl": "Wywołuje powiadomienie, gdy stan przestanie odbierać dane i może ponownie uruchomić instancję, która jest jego właścicielem",
+            "uk": "Надсилає сповіщення, коли стан перестає отримувати дані, і може перезапустити екземпляр, якому вони належать",
+            "zh-cn": "当某个状态停止接收数据时发出通知，并可以重新启动拥有该状态的实例"
+        },
+        "authors": ["typhosj <typhosj@gmx.de>"],
+        "keywords": ["watchdog", "monitoring", "stale", "heartbeat", "notification"],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "staleguard.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/typhosj/ioBroker.staleguard/main/admin/staleguard.png",
+        "readme": "https://github.com/typhosj/ioBroker.staleguard/blob/main/README.md",
+        "loglevel": "info",
+        "tier": 3,
+        "mode": "daemon",
+        "type": "utility",
+        "compact": true,
+        "connectionType": "local",
+        "dataSource": "poll",
+        "adminUI": {
+            "config": "json"
+        },
+        "dependencies": [
+            {
+                "js-controller": ">=6.0.11"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=7.0.23"
+            }
+        ]
+    },
+    "native": {
+        "checkIntervalSec": 60,
+        "restartLockMin": 60
+    },
+    "objects": [],
+    "instanceObjects": []
+}
