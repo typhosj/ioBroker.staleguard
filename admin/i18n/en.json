@@ -1,5 +1,4 @@
 {
-    "staleguard adapter settings": "Adapter settings for staleguard",
     "Check interval (s)": "Check interval (s)",
     "How often all watched states are checked. 10 to 600 seconds.": "How often all watched states are checked. 10 to 600 seconds.",
     "Restart lock (min)": "Restart lock (min)",

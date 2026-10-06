@@ -10,6 +10,5 @@
     "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Поднимите тревогу, если так долго нет признаков жизни. От 1 до 10080 минут.",
     "Restart lock (min)": "Блокировка перезапуска (мин)",
     "Sign of life": "Признак жизни",
-    "Value change": "Изменение значения",
-    "staleguard adapter settings": "Настройки адаптера для staleguard"
+    "Value change": "Изменение значения"
 }

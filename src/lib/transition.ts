@@ -47,6 +47,8 @@ export interface StepInput {
     lockMs: number;
     /** Notification language. */
     lang: Lang;
+    /** Deadline or mode changed since the last check; an ok that follows is no recovery. */
+    settingsChanged: boolean;
 }
 
 const MINUTE_MS = 60_000;
@@ -64,7 +66,7 @@ export function restartPossible(watch: Watch, rt: WatchRuntime, status: Status):
 
 /**
  * Applies one check result. Only transitions cause notifications; `missing` → `ok` is a first
- * value, not a recovery, and stays silent.
+ * value, not a recovery, and stays silent, as does `stale` → `ok` caused by changed settings.
  *
  * @param input watch, runtime, status and time
  */
@@ -106,7 +108,7 @@ export function step(input: StepInput): { rt: WatchRuntime; notes: Note[]; resta
         if (status === 'stale' && observed) {
             const minutes = Math.round((now - lastSign(watch, observed)) / MINUTE_MS);
             notes.push({ category: 'stale', text: staleText(lang, rt.name, watch.id, minutes, restart) });
-        } else if (status === 'ok' && before.status === 'stale') {
+        } else if (status === 'ok' && before.status === 'stale' && !input.settingsChanged) {
             notes.push({ category: 'recovered', text: recoveredText(lang, rt.name, watch.id) });
         } else if (status === 'missing') {
             notes.push({ category: 'configError', text: missingText(lang, watch.id) });

@@ -86,7 +86,9 @@ forwards them to Telegram, e-mail and other messengers. Staleguard contains no d
 A state is reported once when it goes silent and once when it comes back, not on every check. All
 states that change in the same check share one notification per category, so a failed gateway with
 40 sensors sends one message, not 40; long lists are cut after 20 entries with a count of the rest.
-A state that gets its first value is not reported as back. The texts are written in German on a
+A state that gets its first value is not reported as back, and neither is a silent state that is
+fine again only because you raised its deadline or changed its sign of life. Silences of two hours
+and more are given in hours, from two days on in days. The texts are written in German on a
 German system and in English otherwise.
 
 ### Instance restarts
@@ -138,6 +140,12 @@ is disabled, its channel is removed.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+* (typhosj) Editing a watched object no longer reloads all watches and writes a log line, unless its Staleguard settings changed
+* (typhosj) Long silences are given in hours or days instead of minutes
+* (typhosj) A silent state is no longer reported as back when only its deadline or sign of life was changed
+* (typhosj) The log of a restart that had to wait no longer calls it a repeat
 
 ### 0.0.1 (2026-10-06)
 * (typhosj) initial release

@@ -10,6 +10,5 @@
     "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "如果长时间没有生命迹象，请发出警报。 1 到 10080 分钟。",
     "Restart lock (min)": "重启锁定（分钟）",
     "Sign of life": "生命迹象",
-    "Value change": "价值变化",
-    "staleguard adapter settings": "staleguard的适配器设置"
+    "Value change": "价值变化"
 }

@@ -30,6 +30,7 @@ function input(overrides: Partial<StepInput> = {}): StepInput {
         lastInstanceRestart: undefined,
         lockMs: 60 * MINUTE,
         lang: 'en',
+        settingsChanged: false,
         ...overrides,
     };
 }
@@ -77,6 +78,20 @@ describe('transition', () => {
         const result = step(input({ rt }));
         expect(result.notes.map(note => note.category)).to.deep.equal(['recovered']);
         expect(result.rt.restart).to.deep.equal(emptyRestart());
+    });
+
+    it('does not report stale → ok as recovered when only the deadline or mode changed', () => {
+        const rt = runtime('stale', { restart: { attempts: 1, lastRestartAt: T0, gaveUp: false } });
+        const result = step(input({ rt, settingsChanged: true }));
+        expect(result.notes).to.deep.equal([]);
+        expect(result.rt).to.include({ status: 'ok', since: T0 });
+        expect(result.rt.restart).to.deep.equal(emptyRestart());
+    });
+
+    it('does not report a stale state again when it stays stale under changed settings', () => {
+        const rt = runtime('stale', { restart: { attempts: 1, lastRestartAt: T0, gaveUp: false } });
+        const result = step(input({ rt, status: 'stale', settingsChanged: true, now: T0 + MINUTE }));
+        expect(result.notes).to.deep.equal([]);
     });
 
     it('does not report missing → ok as a recovery, it is a first value', () => {

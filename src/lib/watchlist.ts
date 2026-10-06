@@ -182,6 +182,35 @@ export function freshErrors(
     return { fresh, reported: keys };
 }
 
+/**
+ * The own custom entry of every object that has one, as comparable text. Stored after each
+ * reload, so a change of any other property of a watched object does not reload the watch list.
+ *
+ * @param entries object ids with their raw custom entry
+ */
+export function customKeys(entries: { id: string; custom: unknown }[]): Map<string, string> {
+    const keys = new Map<string, string>();
+    for (const entry of entries) {
+        if (entry.custom !== undefined && entry.custom !== null) {
+            keys.set(entry.id, JSON.stringify(entry.custom));
+        }
+    }
+    return keys;
+}
+
+/**
+ * True when the own custom entry of an object differs from the one of the last reload: added,
+ * changed or removed.
+ *
+ * @param keys result of `customKeys` at the last reload
+ * @param id object id
+ * @param custom the object's current `common.custom['staleguard.<n>']`
+ */
+export function customChanged(keys: ReadonlyMap<string, string>, id: string, custom: unknown): boolean {
+    const key = custom === undefined || custom === null ? undefined : JSON.stringify(custom);
+    return key !== keys.get(id);
+}
+
 function clampSetting(
     name: string,
     value: unknown,

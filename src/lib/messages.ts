@@ -41,6 +41,25 @@ export function displayName(name: unknown, lang: Lang, fallback: string): string
 }
 
 /**
+ * A silence as people say it: minutes below two hours, hours below two days, then days. Both
+ * thresholds keep the number at 2 or more, so the plural always fits.
+ *
+ * @param lang notification language
+ * @param minutes minutes since the last sign of life
+ */
+function durationText(lang: Lang, minutes: number): string {
+    if (minutes < 120) {
+        return `${minutes} min`;
+    }
+    const hours = Math.round(minutes / 60);
+    if (hours < 48) {
+        return lang === 'de' ? `${hours} Stunden` : `${hours} hours`;
+    }
+    const days = Math.round(minutes / 1440);
+    return lang === 'de' ? `${days} Tagen` : `${days} days`;
+}
+
+/**
  * State went silent.
  *
  * @param lang notification language
@@ -50,10 +69,11 @@ export function displayName(name: unknown, lang: Lang, fallback: string): string
  * @param restarting instance being restarted now, or null
  */
 export function staleText(lang: Lang, name: string, id: string, minutes: number, restarting: string | null): string {
+    const silence = durationText(lang, minutes);
     if (lang === 'de') {
-        return `Kein Lebenszeichen von '${name}' (${id}) seit ${minutes} min.${restarting ? ` Instanz ${restarting} wird neu gestartet.` : ''}`;
+        return `Kein Lebenszeichen von '${name}' (${id}) seit ${silence}.${restarting ? ` Instanz ${restarting} wird neu gestartet.` : ''}`;
     }
-    return `No sign of life from '${name}' (${id}) for ${minutes} min.${restarting ? ` Restarting instance ${restarting}.` : ''}`;
+    return `No sign of life from '${name}' (${id}) for ${silence}.${restarting ? ` Restarting instance ${restarting}.` : ''}`;
 }
 
 /**

@@ -37,6 +37,18 @@ describe('messages', () => {
         );
     });
 
+    it('shows long silences in hours and days', () => {
+        const silence = (lang: 'de' | 'en', minutes: number): string =>
+            staleText(lang, 'W', 'a', minutes, null).replace(/^.* (seit|for) /, '');
+        expect(silence('en', 0)).to.equal('0 min.');
+        expect(silence('en', 119)).to.equal('119 min.');
+        expect(silence('en', 120)).to.equal('2 hours.');
+        expect(silence('de', 120)).to.equal('2 Stunden.');
+        expect(silence('en', 2849)).to.equal('47 hours.');
+        expect(silence('en', 2850)).to.equal('2 days.');
+        expect(silence('de', 10085)).to.equal('7 Tagen.');
+    });
+
     it('names the attempts when giving up', () => {
         expect(exhaustedText('en', 'Washer', 'a.0.s', 3, 'a.0')).to.equal(
             "'Washer' (a.0.s) is still silent after 3 restart(s) of a.0. No further attempts.",

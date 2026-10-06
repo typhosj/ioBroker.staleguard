@@ -10,6 +10,5 @@
     "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Sonnez l’alarme lorsqu’il n’y a aucun signe de vie pendant aussi longtemps. 1 à 10080 minutes.",
     "Restart lock (min)": "Verrouillage du redémarrage (min)",
     "Sign of life": "Signe de vie",
-    "Value change": "Changement de valeur",
-    "staleguard adapter settings": "Paramètres d'adaptateur pour staleguard"
+    "Value change": "Changement de valeur"
 }

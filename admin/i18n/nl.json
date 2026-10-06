@@ -10,6 +10,5 @@
     "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Sla alarm als er zo lang geen teken van leven is. 1 tot 10080 minuten.",
     "Restart lock (min)": "Herstartblokkering (min)",
     "Sign of life": "Teken van leven",
-    "Value change": "Waardeverandering",
-    "staleguard adapter settings": "Adapterinstellingen voor staleguard"
+    "Value change": "Waardeverandering"
 }

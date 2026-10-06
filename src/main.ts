@@ -3,7 +3,7 @@ import * as utils from '@iobroker/adapter-core';
 import { isStatus, statusOf, type Observed } from './lib/evaluate';
 import { displayName, invalidText, joinLines, pickLang, restartFailedText, type Lang } from './lib/messages';
 import { restartPossible, restoreRuntime, step, type Category, type Note, type WatchRuntime } from './lib/transition';
-import { buildWatchlist, freshErrors, normalizeNative, type Watch } from './lib/watchlist';
+import { buildWatchlist, customChanged, customKeys, freshErrors, normalizeNative, type Watch } from './lib/watchlist';
 
 declare global {
     // ioBroker declares notification scopes as an interface for adapters to extend.
@@ -42,6 +42,10 @@ class Staleguard extends utils.Adapter {
     private reportedErrors = new Set<string>();
     /** Watches whose own objects were deleted from outside and are recreated on the next reload. */
     private recreate = new Set<string>();
+    /** Own custom entries at the last reload; only a change of one reloads the watch list. */
+    private customs = new Map<string, string>();
+    /** Watches whose deadline or mode changed since their last check. */
+    private retuned = new Set<string>();
     private notes: Note[] = [];
     private cycleTimer: ioBroker.Timeout | undefined;
     private reloadTimer: ioBroker.Timeout | undefined;
@@ -125,6 +129,7 @@ class Staleguard extends utils.Adapter {
             id: row.id,
             custom: (row.value as Record<string, unknown> | null | undefined)?.[this.namespace],
         }));
+        this.customs = customKeys(entries);
         const { watches, errors } = buildWatchlist(entries, this.namespace, this.FORBIDDEN_CHARS);
         const { fresh, reported } = freshErrors(errors, this.reportedErrors);
         this.reportedErrors = reported;
@@ -136,6 +141,13 @@ class Staleguard extends utils.Adapter {
             if (!next.has(id)) {
                 this.runtime.delete(id);
                 this.written.delete(id);
+                this.retuned.delete(id);
+            }
+        }
+        for (const watch of watches) {
+            const old = this.watches.get(watch.id);
+            if (old && (old.timeoutMs !== watch.timeoutMs || old.mode !== watch.mode)) {
+                this.retuned.add(watch.id);
             }
         }
         this.watches = next;
@@ -260,6 +272,7 @@ class Staleguard extends utils.Adapter {
         if (!before) {
             return;
         }
+        const settingsChanged = this.retuned.delete(watch.id);
         // A watch that was stale before a restart is judged by its raw timestamp, or the grace
         // would report a false recovery on the first cycle.
         const status = statusOf(watch, observed, now, before.status === 'stale' ? 0 : this.startTime);
@@ -276,17 +289,22 @@ class Staleguard extends utils.Adapter {
             lastInstanceRestart: owner ? this.instanceRestarts.get(owner) : undefined,
             lockMs: this.lockMs,
             lang: this.lang,
+            settingsChanged,
         });
         this.runtime.set(watch.id, rt);
         for (const note of notes) {
             this.note(note);
         }
+        if (settingsChanged && before.status === 'stale' && rt.status === 'ok') {
+            this.log.info(`${watch.id} is no longer silent under its changed settings.`);
+        }
 
         if (restart) {
             this.instanceRestarts.set(restart, now);
+            // The stale notification names a restart on ok → stale; a later one is only logged.
             if (before.status === 'stale') {
                 this.log.info(
-                    `Restarting ${restart} again (attempt ${rt.restart.attempts} of ${watch.restartAttempts}), ${watch.id} is still silent.`,
+                    `Restarting ${restart} (attempt ${rt.restart.attempts} of ${watch.restartAttempts}), ${watch.id} is still silent.`,
                 );
             }
             try {
@@ -396,11 +414,11 @@ class Staleguard extends utils.Adapter {
                 );
             }
         }
+        // Adapters may rewrite their objects on every poll; only a change of our entry counts.
         const custom = (obj.common as { custom?: Record<string, unknown> } | undefined)?.custom;
-        if (custom?.[this.namespace] === undefined && !watch) {
-            return;
+        if (customChanged(this.customs, id, custom?.[this.namespace])) {
+            this.scheduleReload();
         }
-        this.scheduleReload();
     }
 
     /**

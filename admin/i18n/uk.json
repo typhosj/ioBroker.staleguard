@@ -10,6 +10,5 @@
     "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Підніміть тривогу, коли так довго немає ознак життя. 1 до 10080 хвилин.",
     "Restart lock (min)": "Перезапуск блокування (хв.)",
     "Sign of life": "Знак життя",
-    "Value change": "Зміна значення",
-    "staleguard adapter settings": "Налаштування адаптера для staleguard"
+    "Value change": "Зміна значення"
 }

@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import {
     buildWatchlist,
+    customChanged,
+    customKeys,
     freshErrors,
     normalizeNative,
     ownerInstance,
@@ -127,6 +129,30 @@ describe('watchlist', () => {
         it('skips disabled entries without an error', () => {
             const result = buildWatchlist([{ id: 'a.0.1', custom: { enabled: false } }], NS, FORBIDDEN);
             expect(result).to.deep.equal({ watches: [], errors: [] });
+        });
+    });
+
+    describe('customChanged', () => {
+        const keys = customKeys([
+            { id: 'a.0.x', custom: valid },
+            { id: 'a.0.history', custom: undefined },
+            { id: 'a.0.cleared', custom: null },
+        ]);
+
+        it('ignores a change of a watched object that leaves its entry as it was', () => {
+            expect(customChanged(keys, 'a.0.x', { ...valid })).to.equal(false);
+        });
+        it('ignores objects without an entry, before and now', () => {
+            expect(customChanged(keys, 'a.0.history', undefined)).to.equal(false);
+            expect(customChanged(keys, 'a.0.cleared', null)).to.equal(false);
+            expect(customChanged(keys, 'a.0.unknown', undefined)).to.equal(false);
+        });
+        it('sees a changed, removed or new entry', () => {
+            expect(customChanged(keys, 'a.0.x', { ...valid, timeoutMin: 31 })).to.equal(true);
+            expect(customChanged(keys, 'a.0.x', { ...valid, enabled: false })).to.equal(true);
+            expect(customChanged(keys, 'a.0.x', undefined)).to.equal(true);
+            expect(customChanged(keys, 'a.0.x', null)).to.equal(true);
+            expect(customChanged(keys, 'a.0.unknown', valid)).to.equal(true);
         });
     });
 
