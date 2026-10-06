@@ -139,7 +139,7 @@ is disabled, its channel is removed.
     ### **WORK IN PROGRESS**
 -->
 
-### **WORK IN PROGRESS**
+### 0.0.1 (2026-10-06)
 * (typhosj) initial release
 
 ## License
