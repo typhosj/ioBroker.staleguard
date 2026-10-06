@@ -18,12 +18,22 @@ export interface Watch {
     owner: string | null;
 }
 
+/** Why a custom entry was rejected. `messages.ts` turns it into text in the system language. */
+export type WatchProblem =
+    | { code: 'ownStates' }
+    | { code: 'timeout'; value: unknown }
+    | { code: 'mode'; value: unknown }
+    | { code: 'attempts'; value: unknown }
+    | { code: 'noOwner' }
+    | { code: 'collision'; other: string }
+    | { code: 'cap'; max: number };
+
 /** A custom entry that could not be turned into a watch. */
 export interface WatchError {
     /** Watched state id. */
     id: string;
-    /** Why the entry was rejected, in English. */
-    reason: string;
+    /** Why the entry was rejected. */
+    problem: WatchProblem;
 }
 
 export const MAX_WATCHES = 5000;
@@ -82,25 +92,25 @@ export function parseCustom(
     if (!isRecord(raw) || raw.enabled !== true) {
         return null;
     }
-    const error = (reason: string): { error: WatchError } => ({ error: { id, reason } });
+    const error = (problem: WatchProblem): { error: WatchError } => ({ error: { id, problem } });
     if (id.startsWith(`${ownNamespace}.`)) {
-        return error('Staleguard cannot watch its own states');
+        return error({ code: 'ownStates' });
     }
     const timeoutMin = raw.timeoutMin ?? 60;
     if (!isIntIn(timeoutMin, 1, 10080)) {
-        return error(`deadline must be a whole number of minutes from 1 to 10080, got ${JSON.stringify(timeoutMin)}`);
+        return error({ code: 'timeout', value: timeoutMin });
     }
     const mode = raw.mode ?? 'update';
     if (mode !== 'update' && mode !== 'change') {
-        return error(`mode must be "update" or "change", got ${JSON.stringify(mode)}`);
+        return error({ code: 'mode', value: mode });
     }
     const restartAttempts = raw.restartAttempts ?? 0;
     if (!isIntIn(restartAttempts, 0, 5)) {
-        return error(`restart attempts must be a whole number from 0 to 5, got ${JSON.stringify(restartAttempts)}`);
+        return error({ code: 'attempts', value: restartAttempts });
     }
     const owner = ownerInstance(id, ownNamespace);
     if (restartAttempts > 0 && owner === null) {
-        return error('instance restarts are only possible for states of another adapter instance');
+        return error({ code: 'noOwner' });
     }
     return {
         watch: { id, sid: toSid(id, forbidden), timeoutMs: timeoutMin * MINUTE_MS, mode, restartAttempts, owner },
@@ -136,17 +146,40 @@ export function buildWatchlist(
         }
         const taken = sids.get(result.watch.sid);
         if (taken !== undefined) {
-            errors.push({ id: entry.id, reason: `its channel id collides with the watch of ${taken}` });
+            errors.push({ id: entry.id, problem: { code: 'collision', other: taken } });
             continue;
         }
         if (watches.length >= max) {
-            errors.push({ id: entry.id, reason: `more than ${max} watched states, this one is ignored` });
+            errors.push({ id: entry.id, problem: { code: 'cap', max } });
             continue;
         }
         sids.set(result.watch.sid, entry.id);
         watches.push(result.watch);
     }
     return { watches, errors };
+}
+
+/**
+ * The errors not reported yet. An error that disappeared is forgotten, so it is reported again
+ * when the same setting breaks the same way later.
+ *
+ * @param errors errors of the current watch list
+ * @param reported keys returned by the previous call
+ */
+export function freshErrors(
+    errors: WatchError[],
+    reported: ReadonlySet<string>,
+): { fresh: WatchError[]; reported: Set<string> } {
+    const keys = new Set<string>();
+    const fresh: WatchError[] = [];
+    for (const error of errors) {
+        const key = `${error.id}|${JSON.stringify(error.problem)}`;
+        keys.add(key);
+        if (!reported.has(key)) {
+            fresh.push(error);
+        }
+    }
+    return { fresh, reported: keys };
 }
 
 function clampSetting(

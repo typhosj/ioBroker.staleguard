@@ -17,7 +17,7 @@ import {
     type Lang,
 } from './lib/messages';
 import { afterExhausted, afterRestart, decideRestart, emptyRestart, type RestartRuntime } from './lib/restart';
-import { buildWatchlist, normalizeNative, type Watch } from './lib/watchlist';
+import { buildWatchlist, freshErrors, normalizeNative, type Watch } from './lib/watchlist';
 
 declare global {
     // ioBroker declares notification scopes as an interface for adapters to extend.
@@ -140,12 +140,10 @@ class Staleguard extends utils.Adapter {
             custom: (row.value as Record<string, unknown> | null | undefined)?.[this.namespace],
         }));
         const { watches, errors } = buildWatchlist(entries, this.namespace, this.FORBIDDEN_CHARS);
-        for (const error of errors) {
-            const key = `${error.id}|${error.reason}`;
-            if (!this.reportedErrors.has(key)) {
-                this.reportedErrors.add(key);
-                await this.notify('configError', invalidText(this.lang, error.id, error.reason));
-            }
+        const { fresh, reported } = freshErrors(errors, this.reportedErrors);
+        this.reportedErrors = reported;
+        for (const error of fresh) {
+            await this.notify('configError', invalidText(this.lang, error.id, error.problem));
         }
         const next = new Map(watches.map(watch => [watch.id, watch]));
         for (const id of this.runtime.keys()) {

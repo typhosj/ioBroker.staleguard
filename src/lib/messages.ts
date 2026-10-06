@@ -3,6 +3,8 @@
  * in the system language here instead of through admin i18n.
  */
 
+import type { WatchProblem } from './watchlist';
+
 export type Lang = 'de' | 'en';
 
 /**
@@ -94,13 +96,63 @@ export function missingText(lang: Lang, id: string): string {
 }
 
 /**
+ * A rejected setting as the user typed it: strings quoted, numbers (NaN included) as they are.
+ *
+ * @param value rejected value
+ */
+function shown(value: unknown): string {
+    return typeof value === 'number' ? String(value) : (JSON.stringify(value) ?? String(value));
+}
+
+/**
+ * Why a watch was rejected. Fields are named by their label in the custom settings dialog.
+ *
+ * @param lang notification language
+ * @param problem rejection from the watch list
+ */
+export function reasonText(lang: Lang, problem: WatchProblem): string {
+    const de = lang === 'de';
+    switch (problem.code) {
+        case 'ownStates':
+            return de
+                ? 'Staleguard kann seine eigenen States nicht überwachen.'
+                : 'Staleguard cannot watch its own states.';
+        case 'timeout':
+            return de
+                ? `„Frist (min)“ muss eine ganze Zahl von 1 bis 10080 sein, eingestellt ist ${shown(problem.value)}.`
+                : `'Deadline (min)' must be a whole number from 1 to 10080, but is ${shown(problem.value)}.`;
+        case 'mode':
+            return de
+                ? `„Lebenszeichen“ muss "update" oder "change" sein, eingestellt ist ${shown(problem.value)}.`
+                : `'Sign of life' must be "update" or "change", but is ${shown(problem.value)}.`;
+        case 'attempts':
+            return de
+                ? `„Instanz-Neustarts pro Ausfall“ muss eine ganze Zahl von 0 bis 5 sein, eingestellt ist ${shown(problem.value)}.`
+                : `'Instance restarts per outage' must be a whole number from 0 to 5, but is ${shown(problem.value)}.`;
+        case 'noOwner':
+            return de
+                ? 'Instanz-Neustarts sind nur für States einer anderen Adapter-Instanz möglich.'
+                : 'Instance restarts are only possible for states of another adapter instance.';
+        case 'collision':
+            return de
+                ? `Die Kanal-ID kollidiert mit der Überwachung von ${problem.other}.`
+                : `Its channel id collides with the watch of ${problem.other}.`;
+        case 'cap':
+            return de
+                ? `Mehr als ${problem.max} überwachte States, dieser wird ignoriert.`
+                : `More than ${problem.max} watched states, this one is ignored.`;
+    }
+}
+
+/**
  * Custom settings of a state are invalid.
  *
  * @param lang notification language
  * @param id state id
- * @param reason validation message from the watch list
+ * @param problem rejection from the watch list
  */
-export function invalidText(lang: Lang, id: string, reason: string): string {
+export function invalidText(lang: Lang, id: string, problem: WatchProblem): string {
+    const reason = reasonText(lang, problem);
     return lang === 'de'
         ? `Die Überwachung von ${id} ist ungültig eingestellt: ${reason}`
         : `The watch of ${id} has an invalid setting: ${reason}`;

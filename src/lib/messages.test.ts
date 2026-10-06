@@ -5,6 +5,7 @@ import {
     invalidText,
     missingText,
     pickLang,
+    reasonText,
     recoveredText,
     restartFailedText,
     staleText,
@@ -45,8 +46,38 @@ describe('messages', () => {
         for (const lang of ['de', 'en'] as const) {
             expect(recoveredText(lang, 'W', 'a.0.s')).to.contain('a.0.s');
             expect(missingText(lang, 'a.0.s')).to.contain('a.0.s');
-            expect(invalidText(lang, 'a.0.s', 'bad mode')).to.contain('bad mode');
+            expect(invalidText(lang, 'a.0.s', { code: 'noOwner' })).to.contain('a.0.s');
             expect(restartFailedText(lang, 'a.0', 'denied')).to.contain('denied');
         }
+    });
+
+    it('explains every rejected setting in German and English', () => {
+        const cases = [
+            { problem: { code: 'ownStates' }, part: '' },
+            { problem: { code: 'timeout', value: 0 }, part: '0' },
+            { problem: { code: 'mode', value: 'value' }, part: '"value"' },
+            { problem: { code: 'attempts', value: 6 }, part: '6' },
+            { problem: { code: 'noOwner' }, part: '' },
+            { problem: { code: 'collision', other: 'a.0.x.y' }, part: 'a.0.x.y' },
+            { problem: { code: 'cap', max: 5000 }, part: '5000' },
+        ] as const;
+        for (const { problem, part } of cases) {
+            const de = reasonText('de', problem);
+            const en = reasonText('en', problem);
+            expect(de, problem.code).to.not.equal(en);
+            expect(de, problem.code).to.contain(part);
+            expect(en, problem.code).to.contain(part);
+        }
+    });
+
+    it('shows a missing or odd value readably', () => {
+        expect(reasonText('en', { code: 'timeout', value: null })).to.contain('null');
+        expect(reasonText('en', { code: 'timeout', value: '30' })).to.contain('"30"');
+    });
+
+    it('writes a German invalid-setting text without English parts', () => {
+        expect(invalidText('de', 'a.0.s', { code: 'timeout', value: 0 })).to.equal(
+            'Die Überwachung von a.0.s ist ungültig eingestellt: „Frist (min)“ muss eine ganze Zahl von 1 bis 10080 sein, eingestellt ist 0.',
+        );
     });
 });
