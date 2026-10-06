@@ -30,12 +30,11 @@ Typical cases:
 
 1. Install the adapter and create an instance. The defaults work for most systems.
 2. Open **Objects**, click the gear icon (custom settings) of the state you want to watch, and
-   enable `staleguard.0`.
+   switch on **Enabled** in the `staleguard.0` section.
 3. Set the fields:
 
 | Field | Range | Default | Meaning |
 |---|---|---|---|
-| Watch this state | on / off | off | watch this state |
 | Deadline (min) | 1–10080 | 60 | alarm when there is no sign of life for this long (max. 7 days) |
 | Sign of life | Any update / Value change | Any update | which timestamp counts, see below |
 | Instance restarts per outage | 0–5 | 0 | restart the owning instance, 0 = off |
@@ -58,6 +57,13 @@ notification, so you notice the mistake.
   the same value with a new timestamp on every poll, so frozen cloud data only shows up with this
   mode.
 
+Two details decide which mode fits:
+
+- Many adapters write a state only when its value changes. For such states, **Any update** behaves
+  like **Value change**: an unchanged value leaves `ts` untouched, too.
+- Every write counts, also a command (`ack: false`) from a script or a visualization. A command to
+  a dead device keeps its state alive in both modes, so watch a state the device itself reports.
+
 Values that legitimately stay constant for a long time (PV power at night, the charge level of a
 parked car) cause false alarms with **Value change**. For frozen cloud data, watch a timestamp the
 cloud itself delivers (`lastSeen` or similar) with **Value change** instead.
@@ -77,8 +83,11 @@ forwards them to Telegram, e-mail and other messengers. Staleguard contains no d
 | State back | info | a silent state is sending again |
 | Watch problem | notify | the state does not exist or has no value, a setting is invalid, a restart failed |
 
-A state is reported once when it goes silent and once when it comes back, not on every check. The
-texts are written in German on a German system and in English otherwise.
+A state is reported once when it goes silent and once when it comes back, not on every check. All
+states that change in the same check share one notification per category, so a failed gateway with
+40 sensors sends one message, not 40; long lists are cut after 20 entries with a count of the rest.
+A state that gets its first value is not reported as back. The texts are written in German on a
+German system and in English otherwise.
 
 ### Instance restarts
 
@@ -94,6 +103,12 @@ belongs to (`<adapter>.<n>`):
 
 Restarts are only possible for states of another adapter instance, not for `0_userdata`, `alias`
 or `system` states.
+
+For an adapter in schedule mode (it runs on a timetable, e.g. `ical`), a restart runs it at once.
+
+A restart always affects the whole instance. For a heartbeat written by a script in
+`javascript.0`, a restart restarts every script of that instance; leave restarts off there unless
+that is what you want.
 
 ### States
 
@@ -113,7 +128,9 @@ is disabled, its channel is removed.
 ### Limits
 
 - At most 5000 watched states; further entries are rejected and reported.
-- A watched object that is deleted at runtime shows `missing` until Staleguard restarts.
+- A watched object that is deleted at runtime shows `missing` until the watch list is reloaded
+  (Staleguard restarts, or any custom setting changes). Then its watch and channel are removed
+  without a further notification.
 - A timestamp in the future (the clock moved back) keeps a watch `ok` until the clock catches up.
 
 ## Changelog

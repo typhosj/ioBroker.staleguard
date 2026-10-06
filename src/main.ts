@@ -1,22 +1,8 @@
-/*
- * Created with @iobroker/create-adapter
- */
-
 import * as utils from '@iobroker/adapter-core';
 
-import { isStatus, lastSign, statusOf, type Observed, type Status } from './lib/evaluate';
-import {
-    displayName,
-    exhaustedText,
-    invalidText,
-    missingText,
-    pickLang,
-    recoveredText,
-    restartFailedText,
-    staleText,
-    type Lang,
-} from './lib/messages';
-import { afterExhausted, afterRestart, decideRestart, emptyRestart, type RestartRuntime } from './lib/restart';
+import { isStatus, statusOf, type Observed } from './lib/evaluate';
+import { displayName, invalidText, joinLines, pickLang, restartFailedText, type Lang } from './lib/messages';
+import { restartPossible, restoreRuntime, step, type Category, type Note, type WatchRuntime } from './lib/transition';
 import { buildWatchlist, freshErrors, normalizeNative, type Watch } from './lib/watchlist';
 
 declare global {
@@ -29,19 +15,10 @@ declare global {
     }
 }
 
-type Category = 'stale' | 'recovered' | 'configError';
-
 const MINUTE_MS = 60_000;
 /** Custom settings are often saved field by field; collect them before reloading. */
 const RELOAD_DEBOUNCE_MS = 2_000;
-
-/** In-memory state of one watch. Restored from the own states after a Staleguard restart. */
-interface WatchRuntime {
-    name: string;
-    status: Status;
-    since: number;
-    restart: RestartRuntime;
-}
+const CATEGORIES: readonly Category[] = ['stale', 'recovered', 'configError'];
 
 const WATCH_STATES: { id: string; name: string; type: ioBroker.CommonType; role: string }[] = [
     { id: 'stale', name: 'Silent', type: 'boolean', role: 'indicator.alarm' },
@@ -56,9 +33,16 @@ function errText(error: unknown): string {
 
 class Staleguard extends utils.Adapter {
     private watches = new Map<string, Watch>();
+    /** Own channel id → watched state id. */
+    private sids = new Map<string, string>();
     private runtime = new Map<string, WatchRuntime>();
+    /** Last values written to the own states of a watch, so unchanged watches cost no DB access. */
+    private written = new Map<string, string>();
     private instanceRestarts = new Map<string, number>();
     private reportedErrors = new Set<string>();
+    /** Watches whose own objects were deleted from outside and are recreated on the next reload. */
+    private recreate = new Set<string>();
+    private notes: Note[] = [];
     private cycleTimer: ioBroker.Timeout | undefined;
     private reloadTimer: ioBroker.Timeout | undefined;
     private queue: Promise<void> = Promise.resolve();
@@ -97,12 +81,13 @@ class Staleguard extends utils.Adapter {
     }
 
     /**
-     * Runs tasks one after another, so a reload never interleaves with a check.
+     * Runs tasks one after another, so a reload never interleaves with a check. Nothing runs once
+     * the adapter is stopping.
      *
      * @param task work to queue
      */
     private serial(task: () => Promise<void>): Promise<void> {
-        const run = this.queue.then(task);
+        const run = this.queue.then(() => (this.stopping ? undefined : task()));
         this.queue = run.catch(() => undefined);
         return run;
     }
@@ -131,6 +116,7 @@ class Staleguard extends utils.Adapter {
             this.loadFailed = true;
             this.log.error(`Cannot read the watch list: ${errText(error)}. Retrying with the next check.`);
         }
+        await this.flushNotes();
     }
 
     private async reloadWatches(): Promise<void> {
@@ -143,27 +129,35 @@ class Staleguard extends utils.Adapter {
         const { fresh, reported } = freshErrors(errors, this.reportedErrors);
         this.reportedErrors = reported;
         for (const error of fresh) {
-            await this.notify('configError', invalidText(this.lang, error.id, error.problem));
+            this.note({ category: 'configError', text: invalidText(this.lang, error.id, error.problem) });
         }
         const next = new Map(watches.map(watch => [watch.id, watch]));
         for (const id of this.runtime.keys()) {
             if (!next.has(id)) {
                 this.runtime.delete(id);
+                this.written.delete(id);
             }
         }
         this.watches = next;
+        this.sids = new Map(watches.map(watch => [watch.sid, watch.id]));
         for (const watch of watches) {
-            if (!this.runtime.has(watch.id)) {
+            if (this.stopping) {
+                return;
+            }
+            const rt = this.runtime.get(watch.id);
+            if (!rt) {
                 await this.addWatch(watch);
+            } else if (this.recreate.has(watch.id)) {
+                await this.ensureObjects(watch, rt.name);
+                this.written.delete(watch.id);
             }
         }
+        this.recreate.clear();
         await this.sweepOrphans();
         this.log.info(`Watching ${watches.length} state(s).`);
     }
 
-    private async addWatch(watch: Watch): Promise<void> {
-        const source = await this.getForeignObjectAsync(watch.id);
-        const name = displayName(source?.common?.name, this.lang, watch.id);
+    private async ensureObjects(watch: Watch, name: string): Promise<void> {
         const base = `watches.${watch.sid}`;
         await this.setObjectNotExistsAsync(base, {
             type: 'channel',
@@ -177,22 +171,33 @@ class Staleguard extends utils.Adapter {
                 native: {},
             });
         }
+    }
+
+    private async addWatch(watch: Watch): Promise<void> {
+        const source = await this.getForeignObjectAsync(watch.id);
+        const name = displayName(source?.common?.name, this.lang, watch.id);
+        await this.ensureObjects(watch, name);
+        const base = `watches.${watch.sid}`;
         const [status, since, restarts] = await Promise.all([
             this.getStateAsync(`${base}.status`),
             this.getStateAsync(`${base}.since`),
             this.getStateAsync(`${base}.restarts`),
         ]);
         const attempts = typeof restarts?.val === 'number' ? restarts.val : 0;
-        this.runtime.set(watch.id, {
-            name,
-            status: isStatus(status?.val) ? status.val : 'ok',
-            since: typeof since?.val === 'number' ? since.val : Date.now(),
-            restart: {
+        if (attempts > 0 && watch.owner && !this.instanceRestarts.has(watch.owner)) {
+            // The instance lock is not stored; assume the last restart at our start, like the watch does.
+            this.instanceRestarts.set(watch.owner, this.startTime);
+        }
+        this.runtime.set(
+            watch.id,
+            restoreRuntime(
+                name,
+                isStatus(status?.val) ? status.val : null,
+                typeof since?.val === 'number' ? since.val : null,
                 attempts,
-                lastRestartAt: attempts > 0 ? this.startTime : null,
-                gaveUp: attempts > 0 && attempts >= watch.restartAttempts,
-            },
-        });
+                this.startTime,
+            ),
+        );
     }
 
     /** Deletes watch channels whose state is no longer watched. Only channels carrying our sourceId. */
@@ -235,84 +240,71 @@ class Staleguard extends utils.Adapter {
         }
         const now = Date.now();
         for (const watch of this.watches.values()) {
+            if (this.stopping) {
+                return;
+            }
             const state = states[watch.id];
-            await this.applyStatus(watch, state ? { ts: state.ts, lc: state.lc } : null, now);
+            // One broken watch must not stop the others.
+            try {
+                await this.applyStatus(watch, state ? { ts: state.ts, lc: state.lc } : null, now);
+            } catch (error) {
+                this.log.warn(`Cannot check ${watch.id}: ${errText(error)}. Trying again with the next check.`);
+            }
         }
+        await this.flushNotes();
         await this.writeSummary();
     }
 
     private async applyStatus(watch: Watch, observed: Observed | null, now: number): Promise<void> {
-        const rt = this.runtime.get(watch.id);
-        if (!rt) {
+        const before = this.runtime.get(watch.id);
+        if (!before) {
             return;
         }
         // A watch that was stale before a restart is judged by its raw timestamp, or the grace
         // would report a false recovery on the first cycle.
-        const status = statusOf(watch, observed, now, rt.status === 'stale' ? 0 : this.startTime);
-        const changed = status !== rt.status;
-        if (changed) {
-            rt.status = status;
-            rt.since = now;
-            if (status !== 'stale') {
-                rt.restart = emptyRestart();
-            }
+        const status = statusOf(watch, observed, now, before.status === 'stale' ? 0 : this.startTime);
+        const owner = watch.owner;
+        const instanceEnabled =
+            owner !== null && restartPossible(watch, before, status) ? await this.instanceEnabled(owner) : false;
+        const { rt, notes, restart } = step({
+            watch,
+            rt: before,
+            status,
+            observed,
+            now,
+            instanceEnabled,
+            lastInstanceRestart: owner ? this.instanceRestarts.get(owner) : undefined,
+            lockMs: this.lockMs,
+            lang: this.lang,
+        });
+        this.runtime.set(watch.id, rt);
+        for (const note of notes) {
+            this.note(note);
         }
 
-        let restarting: string | null = null;
-        if (status === 'stale' && watch.owner && watch.restartAttempts > 0 && !rt.restart.gaveUp) {
-            const decision = decideRestart({
-                status,
-                owner: watch.owner,
-                attemptsAllowed: watch.restartAttempts,
-                timeoutMs: watch.timeoutMs,
-                runtime: rt.restart,
-                instanceEnabled: await this.instanceEnabled(watch.owner),
-                lastInstanceRestart: this.instanceRestarts.get(watch.owner),
-                lockMs: this.lockMs,
-                now,
-            });
-            if (decision === 'restart') {
-                rt.restart = afterRestart(rt.restart, now);
-                this.instanceRestarts.set(watch.owner, now);
-                restarting = watch.owner;
-            } else if (decision === 'exhausted') {
-                rt.restart = afterExhausted(rt.restart);
-                await this.notify(
-                    'stale',
-                    exhaustedText(this.lang, rt.name, watch.id, rt.restart.attempts, watch.owner),
-                );
-            }
-        }
-
-        if (changed) {
-            if (status === 'stale' && observed) {
-                const minutes = Math.round((now - lastSign(watch, observed)) / MINUTE_MS);
-                await this.notify('stale', staleText(this.lang, rt.name, watch.id, minutes, restarting));
-            } else if (status === 'ok') {
-                await this.notify('recovered', recoveredText(this.lang, rt.name, watch.id));
-            } else if (status === 'missing') {
-                await this.notify('configError', missingText(this.lang, watch.id));
-            }
-        }
-
-        if (restarting) {
-            if (!changed) {
+        if (restart) {
+            this.instanceRestarts.set(restart, now);
+            if (before.status === 'stale') {
                 this.log.info(
-                    `Restarting ${restarting} again (attempt ${rt.restart.attempts} of ${watch.restartAttempts}), ${watch.id} is still silent.`,
+                    `Restarting ${restart} again (attempt ${rt.restart.attempts} of ${watch.restartAttempts}), ${watch.id} is still silent.`,
                 );
             }
             try {
-                await this.extendForeignObjectAsync(`system.adapter.${restarting}`, { common: { enabled: true } });
+                await this.extendForeignObjectAsync(`system.adapter.${restart}`, { common: { enabled: true } });
             } catch (error) {
-                await this.notify('configError', restartFailedText(this.lang, restarting, errText(error)));
+                this.note({ category: 'configError', text: restartFailedText(this.lang, restart, errText(error)) });
             }
         }
 
-        const base = `watches.${watch.sid}`;
-        await this.setStateChangedAsync(`${base}.stale`, rt.status === 'stale', true);
-        await this.setStateChangedAsync(`${base}.status`, rt.status, true);
-        await this.setStateChangedAsync(`${base}.since`, rt.since, true);
-        await this.setStateChangedAsync(`${base}.restarts`, rt.restart.attempts, true);
+        const snapshot = `${rt.status}|${rt.since}|${rt.restart.attempts}`;
+        if (this.written.get(watch.id) !== snapshot) {
+            const base = `watches.${watch.sid}`;
+            await this.setStateChangedAsync(`${base}.stale`, rt.status === 'stale', true);
+            await this.setStateChangedAsync(`${base}.status`, rt.status, true);
+            await this.setStateChangedAsync(`${base}.since`, rt.since, true);
+            await this.setStateChangedAsync(`${base}.restarts`, rt.restart.attempts, true);
+            this.written.set(watch.id, snapshot);
+        }
     }
 
     private async instanceEnabled(instance: string): Promise<boolean> {
@@ -331,28 +323,39 @@ class Staleguard extends utils.Adapter {
         await this.setStateChangedAsync('summary.list', JSON.stringify(list), true);
     }
 
-    private async notify(category: Category, text: string): Promise<void> {
-        if (category === 'recovered') {
-            this.log.info(text);
+    /**
+     * Logs one notification line now; the notification itself goes out with the others of this
+     * check in `flushNotes`.
+     *
+     * @param note category and text
+     */
+    private note(note: Note): void {
+        if (note.category === 'recovered') {
+            this.log.info(note.text);
         } else {
-            this.log.warn(text);
+            this.log.warn(note.text);
         }
-        try {
-            await this.registerNotification('staleguard', category, text);
-        } catch (error) {
-            this.log.warn(`Cannot raise the notification: ${errText(error)}`);
+        this.notes.push(note);
+    }
+
+    /** Raises one notification per category for all lines collected since the last flush. */
+    private async flushNotes(): Promise<void> {
+        const notes = this.notes;
+        this.notes = [];
+        for (const category of CATEGORIES) {
+            const lines = notes.filter(note => note.category === category).map(note => note.text);
+            if (lines.length === 0 || this.stopping) {
+                continue;
+            }
+            try {
+                await this.registerNotification('staleguard', category, joinLines(this.lang, lines));
+            } catch (error) {
+                this.log.warn(`Cannot raise the notification: ${errText(error)}`);
+            }
         }
     }
 
-    private onObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
-        // A deleted object keeps its watch, which then reports `missing`.
-        if (this.stopping || !obj || id.startsWith(`${this.namespace}.`)) {
-            return;
-        }
-        const custom = (obj.common as { custom?: Record<string, unknown> } | undefined)?.custom;
-        if (custom?.[this.namespace] === undefined && !this.watches.has(id)) {
-            return;
-        }
+    private scheduleReload(): void {
         if (this.reloadTimer) {
             this.clearTimeout(this.reloadTimer);
         }
@@ -360,6 +363,63 @@ class Staleguard extends utils.Adapter {
             this.reloadTimer = undefined;
             void this.serial(() => this.loadWatches());
         }, RELOAD_DEBOUNCE_MS);
+    }
+
+    private onObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
+        if (this.stopping) {
+            return;
+        }
+        if (id.startsWith(`${this.namespace}.`)) {
+            this.onOwnObjectChange(id, obj);
+            return;
+        }
+        // A deleted object keeps its watch, which then reports `missing`.
+        if (!obj) {
+            return;
+        }
+        if (id === 'system.config') {
+            this.lang = pickLang((obj.common as { language?: unknown } | undefined)?.language);
+            return;
+        }
+        const rt = this.runtime.get(id);
+        const watch = this.watches.get(id);
+        if (rt && watch) {
+            const name = displayName(obj.common?.name, this.lang, id);
+            if (name !== rt.name) {
+                rt.name = name;
+                void this.serial(() =>
+                    this.extendObjectAsync(`watches.${watch.sid}`, { common: { name: `${name} (${id})` } }).then(
+                        () => undefined,
+                        (error: unknown) =>
+                            this.log.warn(`Cannot rename the watch channel of ${id}: ${errText(error)}`),
+                    ),
+                );
+            }
+        }
+        const custom = (obj.common as { custom?: Record<string, unknown> } | undefined)?.custom;
+        if (custom?.[this.namespace] === undefined && !watch) {
+            return;
+        }
+        this.scheduleReload();
+    }
+
+    /**
+     * Recreates the channel or states of a watch that someone deleted from outside.
+     *
+     * @param id own object id
+     * @param obj the object, null when deleted
+     */
+    private onOwnObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
+        const prefix = `${this.namespace}.watches.`;
+        if (obj || !id.startsWith(prefix)) {
+            return;
+        }
+        // Sids contain no dot, so the first segment after the prefix is the sid.
+        const watchId = this.sids.get(id.slice(prefix.length).split('.')[0]);
+        if (watchId !== undefined && this.watches.has(watchId)) {
+            this.recreate.add(watchId);
+            this.scheduleReload();
+        }
     }
 
     private onUnload(callback: () => void): void {

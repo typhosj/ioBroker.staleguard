@@ -3,6 +3,7 @@ import {
     displayName,
     exhaustedText,
     invalidText,
+    joinLines,
     missingText,
     pickLang,
     reasonText,
@@ -79,5 +80,12 @@ describe('messages', () => {
         expect(invalidText('de', 'a.0.s', { code: 'timeout', value: 0 })).to.equal(
             'Die Überwachung von a.0.s ist ungültig eingestellt: „Frist (min)“ muss eine ganze Zahl von 1 bis 10080 sein, eingestellt ist 0.',
         );
+    });
+
+    it('joins the lines of one check and cuts long lists with a count', () => {
+        expect(joinLines('en', ['a'])).to.equal('a');
+        expect(joinLines('en', ['a', 'b'], 2)).to.equal('a\nb');
+        expect(joinLines('en', ['a', 'b', 'c'], 2)).to.equal('a\nb\n… and 1 more.');
+        expect(joinLines('de', ['a', 'b', 'c', 'd'], 2)).to.equal('a\nb\n… und 2 weitere.');
     });
 });

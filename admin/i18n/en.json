@@ -4,7 +4,6 @@
     "How often all watched states are checked. 10 to 600 seconds.": "How often all watched states are checked. 10 to 600 seconds.",
     "Restart lock (min)": "Restart lock (min)",
     "Minimum time between two restarts of the same instance. 10 to 1440 minutes.": "Minimum time between two restarts of the same instance. 10 to 1440 minutes.",
-    "Watch this state": "Watch this state",
     "Deadline (min)": "Deadline (min)",
     "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.": "Raise an alarm when there is no sign of life for this long. 1 to 10080 minutes.",
     "Sign of life": "Sign of life",

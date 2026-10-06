@@ -91,8 +91,25 @@ export function recoveredText(lang: Lang, name: string, id: string): string {
  */
 export function missingText(lang: Lang, id: string): string {
     return lang === 'de'
-        ? `Der überwachte State ${id} existiert nicht oder hat noch keinen Wert.`
-        : `The watched state ${id} does not exist or has no value yet.`;
+        ? `Der überwachte State ${id} existiert nicht oder hat keinen gültigen Wert.`
+        : `The watched state ${id} does not exist or has no valid value.`;
+}
+
+/**
+ * Lines of one category from one check, as one notification. Long lists are cut, so a mass
+ * outage sends one readable message instead of one per state.
+ *
+ * @param lang notification language
+ * @param lines texts of one category
+ * @param max lines shown before the rest is counted
+ */
+export function joinLines(lang: Lang, lines: string[], max = 20): string {
+    if (lines.length <= max) {
+        return lines.join('\n');
+    }
+    const rest = lines.length - max;
+    const more = lang === 'de' ? `… und ${rest} weitere.` : `… and ${rest} more.`;
+    return [...lines.slice(0, max), more].join('\n');
 }
 
 /**

@@ -2,12 +2,6 @@
     "i18n": true,
     "type": "panel",
     "items": {
-        "enabled": {
-            "type": "checkbox",
-            "label": "Watch this state",
-            "default": false,
-            "xs": 12
-        },
         "timeoutMin": {
             "type": "number",
             "label": "Deadline (min)",
@@ -15,7 +9,6 @@
             "min": 1,
             "max": 10080,
             "default": 60,
-            "hidden": "!data.enabled",
             "xs": 12,
             "sm": 4
         },
@@ -28,7 +21,6 @@
                 { "label": "Value change", "value": "change" }
             ],
             "default": "update",
-            "hidden": "!data.enabled",
             "xs": 12,
             "sm": 4
         },
@@ -39,7 +31,6 @@
             "min": 0,
             "max": 5,
             "default": 0,
-            "hidden": "!data.enabled",
             "xs": 12,
             "sm": 4
         }
