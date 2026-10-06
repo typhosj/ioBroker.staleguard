@@ -44,7 +44,7 @@
             "zh-cn": "当某个状态停止接收数据时发出通知，并可以重新启动拥有该状态的实例"
         },
         "authors": ["typhosj <typhosj@gmx.de>"],
-        "keywords": ["ioBroker", "watchdog", "monitoring", "stale", "heartbeat", "notification"],
+        "keywords": ["watchdog", "monitoring", "stale", "heartbeat", "notification"],
         "licenseInformation": {
             "type": "free",
             "license": "MIT"
@@ -72,7 +72,7 @@
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.6.17"
+                "admin": ">=7.6.20"
             }
         ],
         "supportCustoms": true
