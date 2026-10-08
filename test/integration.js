@@ -29,6 +29,15 @@ async function waitFor(read, expected, timeoutMs) {
 }
 
 async function prepare(harness, ids, timeoutMin) {
+    // The harness keeps its data directory between local runs, so watched states of an earlier
+    // run are still there and would be counted.
+    const leftovers = await call(harness.objects.getObjectList.bind(harness.objects), {
+        startkey: '0_userdata.0.sg',
+        endkey: '0_userdata.0.sg香',
+    });
+    for (const row of leftovers.rows) {
+        await call(harness.objects.delObject.bind(harness.objects), row.id);
+    }
     await harness.changeAdapterConfig('staleguard', { native: { checkIntervalSec: 10 } });
     const custom = { 'staleguard.0': { enabled: true, timeoutMin, mode: 'update', restartAttempts: 0 } };
     for (const id of ids) {
