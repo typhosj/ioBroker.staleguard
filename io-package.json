@@ -72,6 +72,7 @@
         "mode": "daemon",
         "type": "utility",
         "compact": true,
+        "nogit": true,
         "connectionType": "local",
         "dataSource": "poll",
         "adminUI": {
