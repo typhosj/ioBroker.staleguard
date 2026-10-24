@@ -124,7 +124,8 @@ that is what you want.
 | `staleguard.0.watches.<id>.since` | number | time of the last status change |
 | `staleguard.0.watches.<id>.restarts` | number | restart attempts in the current outage |
 
-`<id>` is the watched state id with `.` replaced by `__`. All states are read-only. When a watch
+`<id>` is the watched state id with `.` replaced by `__` and every character other than ASCII
+letters, digits, `_` and `-` replaced by `_`. All states are read-only. When a watch
 is disabled, its channel is removed.
 
 ### Limits
@@ -140,6 +141,9 @@ is disabled, its channel is removed.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (typhosj) Log messages are always written in English; notifications still follow the system language
+* (typhosj) Watch channel ids keep only ASCII letters, digits, `_` and `-`; channels of states with other characters in their id are recreated under the new id once after the update
 
 ### 0.1.0 (2026-10-06)
 * (typhosj) The watch list is reloaded only when Staleguard settings change

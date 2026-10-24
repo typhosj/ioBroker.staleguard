@@ -11,8 +11,20 @@ export type Category = 'stale' | 'recovered' | 'configError';
 export interface Note {
     /** Notification category. */
     category: Category;
-    /** Finished text in the system language. */
+    /** Finished text in the system language, for the notification. */
     text: string;
+    /** The same text in English, for the log. */
+    log: string;
+}
+
+/**
+ * Notification text in `lang` and log text in English from one message function.
+ *
+ * @param lang notification language
+ * @param message builds the text in a given language
+ */
+export function texts(lang: Lang, message: (lang: Lang) => string): Pick<Note, 'text' | 'log'> {
+    return { text: message(lang), log: message('en') };
 }
 
 /** In-memory state of one watch. */
@@ -97,9 +109,11 @@ export function step(input: StepInput): { rt: WatchRuntime; notes: Note[]; resta
             restart = watch.owner;
         } else if (decision === 'exhausted') {
             rt.restart = afterExhausted(rt.restart);
+            const { owner } = watch;
+            const { attempts } = rt.restart;
             notes.push({
                 category: 'stale',
-                text: exhaustedText(lang, rt.name, watch.id, rt.restart.attempts, watch.owner),
+                ...texts(lang, l => exhaustedText(l, rt.name, watch.id, attempts, owner)),
             });
         }
     }
@@ -107,11 +121,11 @@ export function step(input: StepInput): { rt: WatchRuntime; notes: Note[]; resta
     if (changed) {
         if (status === 'stale' && observed) {
             const minutes = Math.round((now - lastSign(watch, observed)) / MINUTE_MS);
-            notes.push({ category: 'stale', text: staleText(lang, rt.name, watch.id, minutes, restart) });
+            notes.push({ category: 'stale', ...texts(lang, l => staleText(l, rt.name, watch.id, minutes, restart)) });
         } else if (status === 'ok' && before.status === 'stale' && !input.settingsChanged) {
-            notes.push({ category: 'recovered', text: recoveredText(lang, rt.name, watch.id) });
+            notes.push({ category: 'recovered', ...texts(lang, l => recoveredText(l, rt.name, watch.id)) });
         } else if (status === 'missing') {
-            notes.push({ category: 'configError', text: missingText(lang, watch.id) });
+            notes.push({ category: 'configError', ...texts(lang, l => missingText(l, watch.id)) });
         }
     }
     return { rt, notes, restart };

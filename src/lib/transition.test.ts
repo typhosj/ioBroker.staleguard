@@ -45,8 +45,35 @@ describe('transition', () => {
             {
                 category: 'stale',
                 text: "No sign of life from 'Count' (ical.0.data.count) for 31 min. Restarting instance ical.0.",
+                log: "No sign of life from 'Count' (ical.0.data.count) for 31 min. Restarting instance ical.0.",
             },
         ]);
+    });
+
+    it('writes the notification in German but the log line in English on a German system', () => {
+        const stale = step(input({ status: 'stale', lang: 'de' })).notes[0];
+        expect(stale.text).to.equal(
+            "Kein Lebenszeichen von 'Count' (ical.0.data.count) seit 31 min. Instanz ical.0 wird neu gestartet.",
+        );
+        expect(stale.log).to.equal(
+            "No sign of life from 'Count' (ical.0.data.count) for 31 min. Restarting instance ical.0.",
+        );
+        const recovered = step(input({ rt: runtime('stale'), status: 'ok', lang: 'de' })).notes[0];
+        expect(recovered).to.include({ text: "'Count' (ical.0.data.count) sendet wieder." });
+        expect(recovered).to.include({ log: "'Count' (ical.0.data.count) is sending again." });
+        const missing = step(input({ status: 'missing', observed: null, lang: 'de' })).notes[0];
+        expect(missing.log).to.equal('The watched state ical.0.data.count does not exist or has no valid value.');
+        const exhausted = step(
+            input({
+                rt: runtime('stale', { restart: { attempts: 2, lastRestartAt: T0 - 30 * MINUTE, gaveUp: false } }),
+                status: 'stale',
+                lang: 'de',
+            }),
+        ).notes[0];
+        expect(exhausted.text).to.contain('Keine weiteren Versuche');
+        expect(exhausted.log).to.equal(
+            "'Count' (ical.0.data.count) is still silent after 2 restart(s) of ical.0. No further attempts.",
+        );
     });
 
     it('stays quiet while a state stays stale before the next attempt is due', () => {

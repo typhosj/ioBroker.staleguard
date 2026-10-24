@@ -2,7 +2,15 @@ import * as utils from '@iobroker/adapter-core';
 
 import { isStatus, statusOf, type Observed } from './lib/evaluate';
 import { displayName, invalidText, joinLines, pickLang, restartFailedText, type Lang } from './lib/messages';
-import { restartPossible, restoreRuntime, step, type Category, type Note, type WatchRuntime } from './lib/transition';
+import {
+    restartPossible,
+    restoreRuntime,
+    step,
+    texts,
+    type Category,
+    type Note,
+    type WatchRuntime,
+} from './lib/transition';
 import { buildWatchlist, customChanged, customKeys, freshErrors, normalizeNative, type Watch } from './lib/watchlist';
 
 declare global {
@@ -130,11 +138,11 @@ class Staleguard extends utils.Adapter {
             custom: (row.value as Record<string, unknown> | null | undefined)?.[this.namespace],
         }));
         this.customs = customKeys(entries);
-        const { watches, errors } = buildWatchlist(entries, this.namespace, this.FORBIDDEN_CHARS);
+        const { watches, errors } = buildWatchlist(entries, this.namespace);
         const { fresh, reported } = freshErrors(errors, this.reportedErrors);
         this.reportedErrors = reported;
         for (const error of fresh) {
-            this.note({ category: 'configError', text: invalidText(this.lang, error.id, error.problem) });
+            this.note({ category: 'configError', ...texts(this.lang, l => invalidText(l, error.id, error.problem)) });
         }
         const next = new Map(watches.map(watch => [watch.id, watch]));
         for (const id of this.runtime.keys()) {
@@ -310,7 +318,10 @@ class Staleguard extends utils.Adapter {
             try {
                 await this.extendForeignObjectAsync(`system.adapter.${restart}`, { common: { enabled: true } });
             } catch (error) {
-                this.note({ category: 'configError', text: restartFailedText(this.lang, restart, errText(error)) });
+                this.note({
+                    category: 'configError',
+                    ...texts(this.lang, l => restartFailedText(l, restart, errText(error))),
+                });
             }
         }
 
@@ -342,16 +353,16 @@ class Staleguard extends utils.Adapter {
     }
 
     /**
-     * Logs one notification line now; the notification itself goes out with the others of this
-     * check in `flushNotes`.
+     * Logs one notification line now, always in English; the notification itself goes out in the
+     * system language with the others of this check in `flushNotes`.
      *
-     * @param note category and text
+     * @param note category and texts
      */
     private note(note: Note): void {
         if (note.category === 'recovered') {
-            this.log.info(note.text);
+            this.log.info(note.log);
         } else {
-            this.log.warn(note.text);
+            this.log.warn(note.log);
         }
         this.notes.push(note);
     }

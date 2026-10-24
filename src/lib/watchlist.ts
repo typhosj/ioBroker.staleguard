@@ -50,13 +50,15 @@ function isIntIn(value: unknown, min: number, max: number): value is number {
 }
 
 /**
- * Own channel id for a watched state: one flat level, so no parent channels are needed.
+ * Own channel id for a watched state: one flat level, so no parent channels are needed. Only
+ * ASCII letters, digits, `_` and `-` remain, because spaces and non-ASCII characters in ids break
+ * other adapters and visualizations. This is stricter than adapter-core's `FORBIDDEN_CHARS`.
+ * Ids that differ only there collide and are reported.
  *
  * @param id watched state id
- * @param forbidden the adapter's FORBIDDEN_CHARS pattern
  */
-export function toSid(id: string, forbidden: RegExp): string {
-    return id.replace(forbidden, '_').replaceAll('.', '__');
+export function toSid(id: string): string {
+    return id.replaceAll('.', '__').replace(/[^A-Za-z0-9_-]/g, '_');
 }
 
 /**
@@ -81,13 +83,11 @@ export function ownerInstance(id: string, ownNamespace: string): string | null {
  * @param id watched state id
  * @param raw the `common.custom['staleguard.<n>']` entry
  * @param ownNamespace Staleguard's own namespace
- * @param forbidden the adapter's FORBIDDEN_CHARS pattern
  */
 export function parseCustom(
     id: string,
     raw: unknown,
     ownNamespace: string,
-    forbidden: RegExp,
 ): { watch: Watch } | { error: WatchError } | null {
     if (!isRecord(raw) || raw.enabled !== true) {
         return null;
@@ -113,7 +113,7 @@ export function parseCustom(
         return error({ code: 'noOwner' });
     }
     return {
-        watch: { id, sid: toSid(id, forbidden), timeoutMs: timeoutMin * MINUTE_MS, mode, restartAttempts, owner },
+        watch: { id, sid: toSid(id), timeoutMs: timeoutMin * MINUTE_MS, mode, restartAttempts, owner },
     };
 }
 
@@ -123,20 +123,18 @@ export function parseCustom(
  *
  * @param entries watched ids with their raw custom entry
  * @param ownNamespace Staleguard's own namespace
- * @param forbidden the adapter's FORBIDDEN_CHARS pattern
  * @param max maximum number of watches
  */
 export function buildWatchlist(
     entries: { id: string; custom: unknown }[],
     ownNamespace: string,
-    forbidden: RegExp,
     max = MAX_WATCHES,
 ): { watches: Watch[]; errors: WatchError[] } {
     const watches: Watch[] = [];
     const errors: WatchError[] = [];
     const sids = new Map<string, string>();
     for (const entry of [...entries].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))) {
-        const result = parseCustom(entry.id, entry.custom, ownNamespace, forbidden);
+        const result = parseCustom(entry.id, entry.custom, ownNamespace);
         if (result === null) {
             continue;
         }

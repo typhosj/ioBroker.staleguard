@@ -11,18 +11,21 @@ import {
     type WatchError,
 } from './watchlist';
 
-// Same pattern as adapter-core's FORBIDDEN_CHARS; the adapter passes this.FORBIDDEN_CHARS.
-const FORBIDDEN = /[^._\-/ :!#$%&()+=@^{}|~\p{Ll}\p{Lu}\p{Nd}]+/gu;
 const NS = 'staleguard.0';
 const valid = { enabled: true, timeoutMin: 30, mode: 'change', restartAttempts: 2 };
 
 describe('watchlist', () => {
     describe('toSid', () => {
         it('flattens dots into a single level', () => {
-            expect(toSid('hm-rpc.0.ABC:1.STATE', FORBIDDEN)).to.equal('hm-rpc__0__ABC:1__STATE');
+            expect(toSid('hm-rpc.0.ABC:1.STATE')).to.equal('hm-rpc__0__ABC_1__STATE');
         });
         it('replaces forbidden characters', () => {
-            expect(toSid('x.0.a*b[c]', FORBIDDEN)).to.equal('x__0__a_b_c_');
+            expect(toSid('x.0.a*b[c]')).to.equal('x__0__a_b_c_');
+        });
+        it('keeps only ASCII letters, digits, _ and -', () => {
+            expect(toSid('mqtt.0.Küche Licht/Ström€')).to.equal('mqtt__0__K_che_Licht_Str_m_');
+            expect(toSid('a.0.日本')).to.equal('a__0____');
+            expect(toSid('a-b.0.A_z-9')).to.equal('a-b__0__A_z-9');
         });
     });
 
@@ -45,11 +48,11 @@ describe('watchlist', () => {
 
     describe('parseCustom', () => {
         it('returns null when the entry is missing or disabled', () => {
-            expect(parseCustom('a.0.x', undefined, NS, FORBIDDEN)).to.equal(null);
-            expect(parseCustom('a.0.x', { ...valid, enabled: false }, NS, FORBIDDEN)).to.equal(null);
+            expect(parseCustom('a.0.x', undefined, NS)).to.equal(null);
+            expect(parseCustom('a.0.x', { ...valid, enabled: false }, NS)).to.equal(null);
         });
         it('builds a watch from a valid entry', () => {
-            expect(parseCustom('a.0.x', valid, NS, FORBIDDEN)).to.deep.equal({
+            expect(parseCustom('a.0.x', valid, NS)).to.deep.equal({
                 watch: {
                     id: 'a.0.x',
                     sid: 'a__0__x',
@@ -61,7 +64,7 @@ describe('watchlist', () => {
             });
         });
         it('applies defaults for missing keys', () => {
-            expect(parseCustom('0_userdata.0.x', { enabled: true }, NS, FORBIDDEN)).to.deep.equal({
+            expect(parseCustom('0_userdata.0.x', { enabled: true }, NS)).to.deep.equal({
                 watch: {
                     id: '0_userdata.0.x',
                     sid: '0_userdata__0__x',
@@ -74,34 +77,34 @@ describe('watchlist', () => {
         });
         for (const timeoutMin of [0, -1, Number.NaN, 10081, '30', 1.5]) {
             it(`rejects deadline ${String(timeoutMin)}`, () => {
-                expect(parseCustom('a.0.x', { ...valid, timeoutMin }, NS, FORBIDDEN)).to.deep.equal({
+                expect(parseCustom('a.0.x', { ...valid, timeoutMin }, NS)).to.deep.equal({
                     error: { id: 'a.0.x', problem: { code: 'timeout', value: timeoutMin } },
                 });
             });
         }
         it('accepts the deadline boundaries 1 and 10080', () => {
-            expect(parseCustom('a.0.x', { ...valid, timeoutMin: 1 }, NS, FORBIDDEN)).to.have.property('watch');
-            expect(parseCustom('a.0.x', { ...valid, timeoutMin: 10080 }, NS, FORBIDDEN)).to.have.property('watch');
+            expect(parseCustom('a.0.x', { ...valid, timeoutMin: 1 }, NS)).to.have.property('watch');
+            expect(parseCustom('a.0.x', { ...valid, timeoutMin: 10080 }, NS)).to.have.property('watch');
         });
         it('rejects an unknown mode', () => {
-            expect(parseCustom('a.0.x', { ...valid, mode: 'value' }, NS, FORBIDDEN)).to.deep.equal({
+            expect(parseCustom('a.0.x', { ...valid, mode: 'value' }, NS)).to.deep.equal({
                 error: { id: 'a.0.x', problem: { code: 'mode', value: 'value' } },
             });
         });
         for (const restartAttempts of [-1, 6, 2.5]) {
             it(`rejects restart attempts ${restartAttempts}`, () => {
-                expect(parseCustom('a.0.x', { ...valid, restartAttempts }, NS, FORBIDDEN)).to.deep.equal({
+                expect(parseCustom('a.0.x', { ...valid, restartAttempts }, NS)).to.deep.equal({
                     error: { id: 'a.0.x', problem: { code: 'attempts', value: restartAttempts } },
                 });
             });
         }
         it('rejects restarts for a state without an owning instance', () => {
-            expect(parseCustom('alias.0.x', valid, NS, FORBIDDEN)).to.deep.equal({
+            expect(parseCustom('alias.0.x', valid, NS)).to.deep.equal({
                 error: { id: 'alias.0.x', problem: { code: 'noOwner' } },
             });
         });
         it('rejects watching its own states', () => {
-            expect(parseCustom('staleguard.0.summary.stale', { enabled: true }, NS, FORBIDDEN)).to.deep.equal({
+            expect(parseCustom('staleguard.0.summary.stale', { enabled: true }, NS)).to.deep.equal({
                 error: { id: 'staleguard.0.summary.stale', problem: { code: 'ownStates' } },
             });
         });
@@ -115,19 +118,18 @@ describe('watchlist', () => {
                     { id: 'a.0.x.y', custom: { enabled: true } },
                 ],
                 NS,
-                FORBIDDEN,
             );
             expect(result.watches.map(w => w.id)).to.deep.equal(['a.0.x.y']);
             expect(result.errors).to.deep.equal([{ id: 'a.0.x__y', problem: { code: 'collision', other: 'a.0.x.y' } }]);
         });
         it('caps the list and reports the rest', () => {
             const entries = ['a.0.1', 'a.0.2', 'a.0.3'].map(id => ({ id, custom: { enabled: true } }));
-            const result = buildWatchlist(entries, NS, FORBIDDEN, 2);
+            const result = buildWatchlist(entries, NS, 2);
             expect(result.watches).to.have.length(2);
             expect(result.errors).to.deep.equal([{ id: 'a.0.3', problem: { code: 'cap', max: 2 } }]);
         });
         it('skips disabled entries without an error', () => {
-            const result = buildWatchlist([{ id: 'a.0.1', custom: { enabled: false } }], NS, FORBIDDEN);
+            const result = buildWatchlist([{ id: 'a.0.1', custom: { enabled: false } }], NS);
             expect(result).to.deep.equal({ watches: [], errors: [] });
         });
     });
