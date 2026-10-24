@@ -141,9 +141,10 @@ is disabled, its channel is removed.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
-* (typhosj) Log messages are always written in English; notifications still follow the system language
-* (typhosj) Watch channel ids keep only ASCII letters, digits, `_` and `-`; channels of states with other characters in their id are recreated under the new id once after the update
+
+### 0.1.1 (2026-10-24)
+* (typhosj) Log messages are always in English; notifications still use the system language
+* (typhosj) Watch channel IDs contain only ASCII letters, digits, underscore and hyphen; affected channels are recreated once after the update
 
 ### 0.1.0 (2026-10-06)
 * (typhosj) The watch list is reloaded only when Staleguard settings change

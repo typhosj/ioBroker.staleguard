@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "staleguard",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "news": {
+            "0.1.1": {
+                "en": "Log messages are always in English; notifications still use the system language\nWatch channel IDs contain only ASCII letters, digits, underscore and hyphen; affected channels are recreated once after the update",
+                "de": "Log-Meldungen sind immer auf Englisch; Benachrichtigungen folgen weiter der Systemsprache\nKanal-IDs der Überwachungen enthalten nur noch ASCII-Buchstaben, Ziffern, Unterstrich und Bindestrich; betroffene Kanäle werden nach dem Update einmal neu angelegt",
+                "ru": "Сообщения журнала всегда на английском языке; уведомления по-прежнему используют язык системы\nИдентификаторы каналов наблюдения содержат только латинские буквы, цифры, подчёркивание и дефис; затронутые каналы один раз создаются заново после обновления",
+                "pt": "As mensagens de log são sempre em inglês; as notificações continuam a usar o idioma do sistema\nOs IDs dos canais de monitorização contêm apenas letras ASCII, dígitos, sublinhado e hífen; os canais afetados são recriados uma vez após a atualização",
+                "nl": "Logberichten zijn altijd in het Engels; meldingen gebruiken nog steeds de systeemtaal\nKanaal-ID's van bewakingen bevatten alleen ASCII-letters, cijfers, underscore en koppelteken; betrokken kanalen worden na de update één keer opnieuw aangemaakt",
+                "fr": "Les messages du journal sont toujours en anglais ; les notifications utilisent toujours la langue du système\nLes ID des canaux de surveillance ne contiennent que des lettres ASCII, des chiffres, le tiret bas et le trait d'union ; les canaux concernés sont recréés une fois après la mise à jour",
+                "it": "I messaggi di log sono sempre in inglese; le notifiche usano ancora la lingua di sistema\nGli ID dei canali di monitoraggio contengono solo lettere ASCII, cifre, trattino basso e trattino; i canali interessati vengono ricreati una volta dopo l'aggiornamento",
+                "es": "Los mensajes de registro están siempre en inglés; las notificaciones siguen usando el idioma del sistema\nLos ID de los canales de vigilancia solo contienen letras ASCII, dígitos, guion bajo y guion; los canales afectados se vuelven a crear una vez tras la actualización",
+                "pl": "Komunikaty dziennika są zawsze po angielsku; powiadomienia nadal używają języka systemu\nIdentyfikatory kanałów nadzoru zawierają tylko litery ASCII, cyfry, podkreślenie i myślnik; kanały, których to dotyczy, są tworzone ponownie raz po aktualizacji",
+                "uk": "Повідомлення журналу завжди англійською мовою; сповіщення й надалі використовують мову системи\nІдентифікатори каналів спостереження містять лише латинські літери, цифри, підкреслення та дефіс; відповідні канали один раз створюються заново після оновлення",
+                "zh-cn": "日志消息始终使用英语；通知仍使用系统语言\n监视通道 ID 仅包含 ASCII 字母、数字、下划线和连字符；受影响的通道在更新后会重新创建一次"
+            },
             "0.1.0": {
                 "en": "The watch list is reloaded only when Staleguard settings change\nLong silences are shown in hours or days\nNo \"State back\" notification when only the deadline or sign of life was changed\nClearer log line for a delayed restart",
                 "de": "Die Überwachungsliste wird nur noch neu geladen, wenn sich Staleguard-Einstellungen ändern\nLange Stille wird in Stunden oder Tagen angegeben\nKeine Meldung „State wieder da“, wenn nur Frist oder Lebenszeichen geändert wurden\nKlarere Logzeile bei einem verzögerten Neustart",
